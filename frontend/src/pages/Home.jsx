@@ -95,7 +95,7 @@ export default function Home() {
           <div className="steps-grid" style={{ display: 'grid', gap: 24 }}>
             {[
               { n: '01', title: 'Report It', desc: 'Lost something? Fill in the details and submit. Found something? Upload front and back photos with your contact info.', color: '#ff4d6d' },
-              { n: '02', title: 'AI Matches', desc: 'Our Groq-powered AI analyzes photos and descriptions to find the best matches from the database with a confidence score.', color: '#6c63ff' },
+              { n: '02', title: 'AI Matches', desc: 'Our VicFind-powered AI analyzes photos and descriptions to find the best matches from the database with a confidence score.', color: '#6c63ff' },
               { n: '03', title: 'Safe Reunion', desc: 'Owner verifies via email, both parties get Reunion IDs to safely identify each other when meeting on campus.', color: '#00d4aa' },
             ].map(s => (
               <div key={s.n} className="card" style={{ padding: '2rem' }}>
@@ -116,7 +116,7 @@ export default function Home() {
         {/* Top row — 4 cards */}
         <div className="features-top" style={{ display: 'grid', gap: 16, marginBottom: 16 }}>
           {[
-            { icon: '🤖', title: 'AI Photo Matching', desc: 'Groq AI compares found item photos against all lost reports with confidence scoring.' },
+            { icon: '🤖', title: 'AI Photo Matching', desc: 'VicFind AI compares found item photos against all lost reports with confidence scoring.' },
             { icon: '📸', title: 'Dual Photo Verification', desc: 'Finders upload front and back photos so owners can be 100% sure before confirming.' },
             { icon: '🔐', title: 'Reunion ID System', desc: 'Unique VF-OWN and VF-FND codes let both parties safely verify each other when meeting.' },
             { icon: '🗺️', title: 'Campus Heatmap', desc: 'Satellite map showing where items are lost and found across Caleb University campus.' },
