@@ -1,6 +1,8 @@
 import { useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { addLostItem } from '../services/firestoreService'
+import { addLostItem, getFoundItems, addNotification } from '../services/firestoreService'
+import { analyzeFoundItem } from '../services/geminiService'
+import { sendMatchEmail } from '../services/emailService'
 import { useToast } from '../components/ToastContext'
 import { useTheme } from '../components/ThemeContext'
 import LoadingSpinner from '../components/LoadingSpinner'
@@ -28,6 +30,7 @@ export default function ReportLost() {
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(null)
   const [photoPreview, setPhotoPreview] = useState(null)
+  const [reverseMatches, setReverseMatches] = useState([])
   const photoRef = useRef()
   const { addToast } = useToast()
   const { dark } = useTheme()
@@ -66,7 +69,101 @@ export default function ReportLost() {
     setErrors({})
     setLoading(true)
     try {
+      // Save lost item first
       const result = await addLostItem(form)
+
+      // Reverse match — check existing found items against this new lost report
+      try {
+        const foundItems = await getFoundItems()
+        const activeFound = foundItems.filter(f => f.status !== 'reunited' && f.imageUrl)
+
+        if (activeFound.length > 0) {
+          addToast('Checking existing found items for matches...', 'info')
+
+          // Build a fake "lost items list" with just this new item for the AI
+          const thisLostItem = [{
+            id: result.id,
+            itemName: form.itemName,
+            category: form.category,
+            color: form.color,
+            description: form.description,
+            location: form.location,
+            name: form.name,
+            email: form.email,
+            ownerReunionId: result.ownerReunionId,
+          }]
+
+          const matches = []
+
+          for (const foundItem of activeFound) {
+            try {
+              // Extract base64 from the stored image URL
+              const base64 = foundItem.imageUrl.includes(',')
+                ? foundItem.imageUrl.split(',')[1]
+                : foundItem.imageUrl
+
+              const mediaType = foundItem.imageUrl.startsWith('data:image/png') ? 'image/png'
+                : foundItem.imageUrl.startsWith('data:image/webp') ? 'image/webp'
+                : 'image/jpeg'
+
+              const aiResults = await analyzeFoundItem(base64, mediaType, thisLostItem)
+
+              if (aiResults.length > 0 && aiResults[0].confidence >= 30) {
+                matches.push({
+                  ...aiResults[0],
+                  foundItemId: foundItem.id,
+                  finderName: foundItem.finderName,
+                  finderPhone: foundItem.finderPhone,
+                  finderEmail: foundItem.finderEmail,
+                  finderReunionId: foundItem.finderReunionId,
+                  foundLocation: foundItem.location,
+                  foundImageUrl: foundItem.imageUrl,
+                  confidence: aiResults[0].confidence,
+                })
+              }
+            } catch (err) {
+              console.error('Reverse match error for found item:', err)
+            }
+          }
+
+          if (matches.length > 0) {
+            // Sort by confidence
+            matches.sort((a, b) => b.confidence - a.confidence)
+            setReverseMatches(matches)
+
+            // Auto-notify owner via email for top match
+            const topMatch = matches[0]
+            try {
+              await addNotification({
+                lostItemId: result.id,
+                ownerEmail: form.email,
+                ownerName: form.name,
+                foundItemId: topMatch.foundItemId,
+                confidence: topMatch.confidence,
+                itemName: form.itemName,
+              })
+              await sendMatchEmail({
+                ownerName: form.name,
+                ownerEmail: form.email,
+                itemName: form.itemName,
+                confidence: topMatch.confidence,
+                reasoning: topMatch.reasoning,
+                finderName: topMatch.finderName,
+                lostItemId: result.id,
+                foundItemId: topMatch.foundItemId,
+                mapLink: `${window.location.origin}/heatmap`,
+              })
+              addToast(`🎉 Match found! Check your email — someone already found an item that matches yours!`, 'success')
+            } catch (emailErr) {
+              console.error('Email error:', emailErr)
+            }
+          }
+        }
+      } catch (reverseErr) {
+        console.error('Reverse match failed:', reverseErr)
+        // Don't block submission if reverse match fails
+      }
+
       setSubmitted(result)
     } catch (err) {
       addToast('Something went wrong. Try again.', 'error')
@@ -78,7 +175,7 @@ export default function ReportLost() {
   if (submitted) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '6rem 1rem 2rem' }}>
-        <div className="card animate-fade-up" style={{ padding: '2.5rem', maxWidth: 440, width: '100%', textAlign: 'center' }}>
+        <div className="card animate-fade-up" style={{ padding: '2.5rem', maxWidth: 480, width: '100%', textAlign: 'center' }}>
           <div style={{ width: 64, height: 64, borderRadius: '50%', backgroundColor: 'rgba(0,212,170,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
             <svg width="32" height="32" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="#00d4aa" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </div>
@@ -86,6 +183,34 @@ export default function ReportLost() {
           <p style={{ fontFamily: 'Inter', color: 'var(--muted)', marginBottom: '1rem' }}>
             We'll email <strong style={{ color: 'var(--text)' }}>{form.email}</strong> the moment AI finds a match.
           </p>
+
+          {/* Reverse match found banner */}
+          {reverseMatches.length > 0 && (
+            <div style={{ padding: '1rem', borderRadius: '0.75rem', backgroundColor: 'rgba(0,212,170,0.1)', border: '1px solid rgba(0,212,170,0.3)', marginBottom: '1rem', textAlign: 'left' }}>
+              <p style={{ fontFamily: 'Space Mono', fontWeight: 700, color: '#00d4aa', margin: '0 0 6px', fontSize: '0.85rem' }}>
+                🎉 Possible match already found!
+              </p>
+              <p style={{ fontFamily: 'Inter', fontSize: '0.8rem', color: 'var(--muted)', margin: '0 0 10px' }}>
+                Someone already reported a found item that may be yours. We've sent you a verification email — check your inbox!
+              </p>
+              {reverseMatches.map((m, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0.5rem', borderRadius: '0.5rem', backgroundColor: 'var(--surface)', marginBottom: 6 }}>
+                  {m.foundImageUrl && (
+                    <img src={m.foundImageUrl} alt="found" style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: '0.375rem', flexShrink: 0 }} />
+                  )}
+                  <div style={{ minWidth: 0 }}>
+                    <p style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '0.8rem', color: 'var(--text)', margin: 0 }}>
+                      {m.confidence}% match confidence
+                    </p>
+                    <p style={{ fontFamily: 'Inter', fontSize: '0.75rem', color: 'var(--muted)', margin: 0 }}>
+                      Found at: {m.foundLocation} · by {m.finderName}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
           <div style={{ padding: '1rem', borderRadius: '0.75rem', backgroundColor: dark ? 'rgba(108,99,255,0.1)' : 'rgba(108,99,255,0.08)', border: '1px solid rgba(108,99,255,0.25)', marginBottom: '1.5rem' }}>
             <p style={{ fontFamily: 'Inter', fontSize: '0.75rem', color: 'var(--muted)', marginBottom: 8 }}>YOUR REUNION ID</p>
             <span className="reunion-badge reunion-owner">{submitted.ownerReunionId}</span>
@@ -93,6 +218,7 @@ export default function ReportLost() {
               Save this code! When you meet the finder, exchange codes to verify each other.
             </p>
           </div>
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <Link to="/items" className="btn-ghost" style={{ textDecoration: 'none', justifyContent: 'center' }}>View All Lost Items</Link>
             <Link to="/heatmap" className="btn-ghost" style={{ textDecoration: 'none', justifyContent: 'center', borderColor: '#00d4aa', color: '#00d4aa' }}>View Campus Heatmap</Link>
@@ -190,7 +316,7 @@ export default function ReportLost() {
           </Field>
 
           <button type="submit" className="btn-primary" style={{ justifyContent: 'center', padding: '1rem', fontSize: '1rem', marginTop: 8 }} disabled={loading}>
-            {loading ? <><LoadingSpinner size="sm" /> Submitting...</> : 'Submit Lost Report'}
+            {loading ? <><LoadingSpinner size="sm" /> {reverseMatches.length > 0 ? 'Checking found items...' : 'Submitting...'}</> : 'Submit Lost Report'}
           </button>
         </form>
       </div>

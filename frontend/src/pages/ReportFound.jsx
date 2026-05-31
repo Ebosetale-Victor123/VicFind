@@ -18,11 +18,9 @@ function PhotoZone({ label, hint, preview, onFile, error, fileRef, cameraRef, re
       </label>
       {hint && <p style={{ fontFamily: 'Inter', fontSize: '0.75rem', color: 'var(--muted)', margin: 0 }}>{hint}</p>}
 
-      {/* Hidden inputs */}
       <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={e => { onFile(e.target.files[0]); setShowOptions(false) }} />
       <input ref={cameraRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={e => { onFile(e.target.files[0]); setShowOptions(false) }} />
 
-      {/* Upload zone */}
       <div
         onDragOver={e => { e.preventDefault(); setDragging(true) }}
         onDragLeave={() => setDragging(false)}
@@ -46,29 +44,19 @@ function PhotoZone({ label, hint, preview, onFile, error, fileRef, cameraRef, re
         )}
       </div>
 
-      {/* Options dropdown */}
       {showOptions && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid var(--border)', backgroundColor: 'var(--card)', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-          <button
-            type="button"
-            onClick={() => { cameraRef.current.click(); setShowOptions(false) }}
-            style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0.625rem 0.875rem', borderRadius: '0.5rem', border: '1px solid var(--border)', backgroundColor: 'var(--surface)', cursor: 'pointer', fontFamily: 'Inter', fontWeight: 600, fontSize: '0.85rem', color: 'var(--text)', transition: 'all 0.15s' }}
-          >
+          <button type="button" onClick={() => { cameraRef.current.click(); setShowOptions(false) }}
+            style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0.625rem 0.875rem', borderRadius: '0.5rem', border: '1px solid var(--border)', backgroundColor: 'var(--surface)', cursor: 'pointer', fontFamily: 'Inter', fontWeight: 600, fontSize: '0.85rem', color: 'var(--text)' }}>
             <span style={{ fontSize: '1.2rem' }}>📸</span> Take Photo
           </button>
-          <button
-            type="button"
-            onClick={() => { fileRef.current.click(); setShowOptions(false) }}
-            style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0.625rem 0.875rem', borderRadius: '0.5rem', border: '1px solid var(--border)', backgroundColor: 'var(--surface)', cursor: 'pointer', fontFamily: 'Inter', fontWeight: 600, fontSize: '0.85rem', color: 'var(--text)', transition: 'all 0.15s' }}
-          >
+          <button type="button" onClick={() => { fileRef.current.click(); setShowOptions(false) }}
+            style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0.625rem 0.875rem', borderRadius: '0.5rem', border: '1px solid var(--border)', backgroundColor: 'var(--surface)', cursor: 'pointer', fontFamily: 'Inter', fontWeight: 600, fontSize: '0.85rem', color: 'var(--text)' }}>
             <span style={{ fontSize: '1.2rem' }}>🗂️</span> Choose from Files
           </button>
           {preview && (
-            <button
-              type="button"
-              onClick={() => { onFile(null); setShowOptions(false) }}
-              style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0.625rem 0.875rem', borderRadius: '0.5rem', border: '1px solid rgba(255,77,109,0.3)', backgroundColor: 'rgba(255,77,109,0.08)', cursor: 'pointer', fontFamily: 'Inter', fontWeight: 600, fontSize: '0.85rem', color: '#ff4d6d', transition: 'all 0.15s' }}
-            >
+            <button type="button" onClick={() => { onFile(null); setShowOptions(false) }}
+              style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0.625rem 0.875rem', borderRadius: '0.5rem', border: '1px solid rgba(255,77,109,0.3)', backgroundColor: 'rgba(255,77,109,0.08)', cursor: 'pointer', fontFamily: 'Inter', fontWeight: 600, fontSize: '0.85rem', color: '#ff4d6d' }}>
               <span style={{ fontSize: '1.2rem' }}>🗑️</span> Remove Photo
             </button>
           )}
@@ -155,14 +143,20 @@ export default function ReportFound() {
       const backBase64Full = backImage ? await uploadFoundImage(backImage) : null
       const lostItems = await getLostItems()
 
-      const frontBase64 = await new Promise((res, rej) => {
-        const reader = new FileReader()
-        reader.onload = e => res(e.target.result.split(',')[1])
-        reader.onerror = rej
-        reader.readAsDataURL(frontImage)
-      })
+      let aiMatches = []
 
-      const aiMatches = await analyzeFoundItem(frontBase64, frontImage.type, lostItems)
+      if (lostItems.length === 0) {
+        // No lost items yet — save and log, owner will be matched when they report
+        addToast('No lost reports yet — your find has been logged. The owner will be notified when they report it!', 'info')
+      } else {
+        const frontBase64 = await new Promise((res, rej) => {
+          const reader = new FileReader()
+          reader.onload = e => res(e.target.result.split(',')[1])
+          reader.onerror = rej
+          reader.readAsDataURL(frontImage)
+        })
+        aiMatches = await analyzeFoundItem(frontBase64, frontImage.type, lostItems)
+      }
 
       const result = await addFoundItem({
         finderName, finderPhone, finderEmail: finderEmail.trim(),
@@ -179,7 +173,7 @@ export default function ReportFound() {
 
       if (aiMatches.length > 0) {
         addToast(`${aiMatches.length} possible match${aiMatches.length > 1 ? 'es' : ''} found! Review and notify the owner.`, 'success')
-      } else {
+      } else if (lostItems.length > 0) {
         addToast('Item logged. No matches found yet — owners will be notified if one appears.', 'info')
       }
     } catch (err) {
@@ -244,25 +238,8 @@ export default function ReportFound() {
           {/* Left: Form */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             <div className="photo-grid">
-              <PhotoZone
-                label="Front Photo"
-                hint="Main face of item"
-                preview={frontPreview}
-                onFile={handleFile(setFrontImage, setFrontPreview)}
-                error={errors.frontImage}
-                fileRef={frontRef}
-                cameraRef={frontCameraRef}
-                required
-              />
-              <PhotoZone
-                label="Back Photo"
-                hint="Recommended"
-                preview={backPreview}
-                onFile={handleFile(setBackImage, setBackPreview)}
-                error={null}
-                fileRef={backRef}
-                cameraRef={backCameraRef}
-              />
+              <PhotoZone label="Front Photo" hint="Main face of item" preview={frontPreview} onFile={handleFile(setFrontImage, setFrontPreview)} error={errors.frontImage} fileRef={frontRef} cameraRef={frontCameraRef} required />
+              <PhotoZone label="Back Photo" hint="Recommended" preview={backPreview} onFile={handleFile(setBackImage, setBackPreview)} error={null} fileRef={backRef} cameraRef={backCameraRef} />
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
