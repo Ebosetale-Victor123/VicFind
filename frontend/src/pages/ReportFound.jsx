@@ -7,19 +7,27 @@ import { useTheme } from '../components/ThemeContext'
 import MatchCard from '../components/MatchCard'
 import LoadingSpinner from '../components/LoadingSpinner'
 
-function PhotoZone({ label, hint, preview, onFile, error, fileRef, required }) {
+function PhotoZone({ label, hint, preview, onFile, error, fileRef, cameraRef, required }) {
   const [dragging, setDragging] = useState(false)
+  const [showOptions, setShowOptions] = useState(false)
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       <label style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '0.875rem', color: 'var(--text)' }}>
         {label} {required && <span style={{ color: '#ff4d6d' }}>*</span>}
       </label>
       {hint && <p style={{ fontFamily: 'Inter', fontSize: '0.75rem', color: 'var(--muted)', margin: 0 }}>{hint}</p>}
+
+      {/* Hidden inputs */}
+      <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={e => { onFile(e.target.files[0]); setShowOptions(false) }} />
+      <input ref={cameraRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={e => { onFile(e.target.files[0]); setShowOptions(false) }} />
+
+      {/* Upload zone */}
       <div
         onDragOver={e => { e.preventDefault(); setDragging(true) }}
         onDragLeave={() => setDragging(false)}
-        onDrop={e => { e.preventDefault(); setDragging(false); onFile(e.dataTransfer.files[0]) }}
-        onClick={() => fileRef.current.click()}
+        onDrop={e => { e.preventDefault(); setDragging(false); onFile(e.dataTransfer.files[0]); setShowOptions(false) }}
+        onClick={() => setShowOptions(o => !o)}
         style={{
           borderRadius: '0.75rem', border: `2px dashed ${dragging ? '#6c63ff' : error ? '#ff4d6d' : 'var(--border)'}`,
           backgroundColor: dragging ? 'rgba(108,99,255,0.08)' : 'var(--surface)',
@@ -27,7 +35,6 @@ function PhotoZone({ label, hint, preview, onFile, error, fileRef, required }) {
           cursor: 'pointer', overflow: 'hidden', transition: 'all 0.2s',
         }}
       >
-        <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={e => onFile(e.target.files[0])} />
         {preview ? (
           <img src={preview} alt="preview" style={{ width: '100%', objectFit: 'cover', maxHeight: 160 }} />
         ) : (
@@ -38,6 +45,36 @@ function PhotoZone({ label, hint, preview, onFile, error, fileRef, required }) {
           </div>
         )}
       </div>
+
+      {/* Options dropdown */}
+      {showOptions && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid var(--border)', backgroundColor: 'var(--card)', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+          <button
+            type="button"
+            onClick={() => { cameraRef.current.click(); setShowOptions(false) }}
+            style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0.625rem 0.875rem', borderRadius: '0.5rem', border: '1px solid var(--border)', backgroundColor: 'var(--surface)', cursor: 'pointer', fontFamily: 'Inter', fontWeight: 600, fontSize: '0.85rem', color: 'var(--text)', transition: 'all 0.15s' }}
+          >
+            <span style={{ fontSize: '1.2rem' }}>📸</span> Take Photo
+          </button>
+          <button
+            type="button"
+            onClick={() => { fileRef.current.click(); setShowOptions(false) }}
+            style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0.625rem 0.875rem', borderRadius: '0.5rem', border: '1px solid var(--border)', backgroundColor: 'var(--surface)', cursor: 'pointer', fontFamily: 'Inter', fontWeight: 600, fontSize: '0.85rem', color: 'var(--text)', transition: 'all 0.15s' }}
+          >
+            <span style={{ fontSize: '1.2rem' }}>🗂️</span> Choose from Files
+          </button>
+          {preview && (
+            <button
+              type="button"
+              onClick={() => { onFile(null); setShowOptions(false) }}
+              style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0.625rem 0.875rem', borderRadius: '0.5rem', border: '1px solid rgba(255,77,109,0.3)', backgroundColor: 'rgba(255,77,109,0.08)', cursor: 'pointer', fontFamily: 'Inter', fontWeight: 600, fontSize: '0.85rem', color: '#ff4d6d', transition: 'all 0.15s' }}
+            >
+              <span style={{ fontSize: '1.2rem' }}>🗑️</span> Remove Photo
+            </button>
+          )}
+        </div>
+      )}
+
       {error && <p style={{ fontFamily: 'Inter', fontSize: '0.75rem', color: '#ff4d6d', margin: 0 }}>{error}</p>}
     </div>
   )
@@ -63,11 +100,14 @@ export default function ReportFound() {
   const [notifying, setNotifying] = useState({})
   const frontRef = useRef()
   const backRef = useRef()
+  const frontCameraRef = useRef()
+  const backCameraRef = useRef()
   const { addToast } = useToast()
   const { dark } = useTheme()
 
   function handleFile(setter, previewSetter) {
     return (file) => {
+      if (file === null) { setter(null); previewSetter(null); return }
       if (!file || !file.type.startsWith('image/')) { addToast('Please upload an image file.', 'error'); return }
       setter(file)
       const reader = new FileReader()
@@ -192,9 +232,6 @@ export default function ReportFound() {
         @media (max-width: 768px) {
           .found-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
         }
-        @media (max-width: 480px) {
-          .photo-grid { grid-template-columns: 1fr 1fr; }
-        }
       `}</style>
 
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
@@ -207,8 +244,25 @@ export default function ReportFound() {
           {/* Left: Form */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             <div className="photo-grid">
-              <PhotoZone label="Front Photo" hint="Main face of item" preview={frontPreview} onFile={handleFile(setFrontImage, setFrontPreview)} error={errors.frontImage} fileRef={frontRef} required />
-              <PhotoZone label="Back Photo" hint="Recommended" preview={backPreview} onFile={handleFile(setBackImage, setBackPreview)} error={null} fileRef={backRef} />
+              <PhotoZone
+                label="Front Photo"
+                hint="Main face of item"
+                preview={frontPreview}
+                onFile={handleFile(setFrontImage, setFrontPreview)}
+                error={errors.frontImage}
+                fileRef={frontRef}
+                cameraRef={frontCameraRef}
+                required
+              />
+              <PhotoZone
+                label="Back Photo"
+                hint="Recommended"
+                preview={backPreview}
+                onFile={handleFile(setBackImage, setBackPreview)}
+                error={null}
+                fileRef={backRef}
+                cameraRef={backCameraRef}
+              />
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
