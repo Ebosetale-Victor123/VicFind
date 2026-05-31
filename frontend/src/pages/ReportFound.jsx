@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { getLostItems, addFoundItem, addNotification, uploadFoundImage } from '../services/firestoreService'
+import { getLostItems, addFoundItem, addNotification } from '../services/firestoreService'
 import { analyzeFoundItem } from '../services/geminiService'
 import { sendMatchEmail } from '../services/emailService'
 import { useToast } from '../components/ToastContext'
@@ -68,8 +68,28 @@ function PhotoZone({ label, hint, preview, onFile, error, fileRef, cameraRef, re
   )
 }
 
-// Compress image to max 800px width at 70% quality before sending to Groq
-function compressImage(file) {
+// Compress for Firestore storage (max 1000px, 75% quality — stays under 1MB limit)
+function compressForStorage(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      const maxW = 1000
+      const scale = Math.min(1, maxW / img.width)
+      const canvas = document.createElement('canvas')
+      canvas.width = img.width * scale
+      canvas.height = img.height * scale
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height)
+      URL.revokeObjectURL(url)
+      resolve(canvas.toDataURL('image/jpeg', 0.75))
+    }
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Image load failed')) }
+    img.src = url
+  })
+}
+
+// Compress for Groq AI (max 800px, 70% quality — smaller = faster + no API size errors)
+function compressForAI(file) {
   return new Promise((resolve, reject) => {
     const img = new Image()
     const url = URL.createObjectURL(file)
@@ -81,8 +101,7 @@ function compressImage(file) {
       canvas.height = img.height * scale
       canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height)
       URL.revokeObjectURL(url)
-      const compressed = canvas.toDataURL('image/jpeg', 0.7)
-      resolve(compressed.split(',')[1])
+      resolve(canvas.toDataURL('image/jpeg', 0.7).split(',')[1])
     }
     img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Image load failed')) }
     img.src = url
@@ -160,18 +179,19 @@ export default function ReportFound() {
       const gpsData = await getGPS()
       setGps(gpsData)
 
-      const frontBase64Full = await uploadFoundImage(frontImage)
-      const backBase64Full = backImage ? await uploadFoundImage(backImage) : null
-      const lostItems = await getLostItems()
+      // Compress images before saving to Firestore (stays under 1MB field limit)
+      const frontBase64Full = await compressForStorage(frontImage)
+      const backBase64Full = backImage ? await compressForStorage(backImage) : null
 
+      const lostItems = await getLostItems()
       let aiMatches = []
 
       if (lostItems.length === 0) {
         addToast('No lost reports yet — your find has been logged. The owner will be notified when they report it!', 'info')
       } else {
-        // Compress image before sending to Groq to avoid request size limits
-        const frontBase64 = await compressImage(frontImage)
-        aiMatches = await analyzeFoundItem(frontBase64, 'image/jpeg', lostItems)
+        // Compress further for Groq AI (smaller = faster, avoids API size limits)
+        const frontBase64AI = await compressForAI(frontImage)
+        aiMatches = await analyzeFoundItem(frontBase64AI, 'image/jpeg', lostItems)
       }
 
       const result = await addFoundItem({
