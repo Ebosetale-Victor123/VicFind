@@ -6,16 +6,25 @@ export async function analyzeFoundItem(imageBase64, mimeType, lostItems) {
 
     const prompt = `You are an AI assistant for VicFind, a campus lost and found system at Caleb University, Ota. Analyze the provided image of a found item and compare it against the lost item descriptions below.
 
+CRITICAL RULES:
+- You MUST first correctly identify what the item in the photo actually is (phone, power bank, mouse, calculator, bag, keys, earbuds, charger, etc.)
+- Do NOT match based on color or shape alone — the item TYPE must match
+- A power bank is NOT a mouse. A phone is NOT a calculator. Earbuds are NOT keys. Be precise.
+- Only give confidence above 60 if the item type AND description closely match
+- Only give confidence above 80 if you are very certain it's the same specific item
+- If the found item is clearly a different type of item than what's listed, give 0 confidence or exclude it entirely
+
 Lost items database:
 ${lostItemsText}
 
 Return ONLY a valid JSON array (no markdown, no code fences) in this exact format:
-[{"lostItemId":"firestore_doc_id","ownerName":"name","ownerEmail":"email","ownerPhone":"phone","itemName":"item name","confidence":87,"reasoning":"specific visual match reason"}]
+[{"lostItemId":"firestore_doc_id","ownerName":"name","ownerEmail":"email","ownerPhone":"phone","itemName":"item name","confidence":87,"reasoning":"I identified the found item as a [type]. This matches/doesn't match because..."}]
 
 Rules:
+- First state what you identified the found item as in your reasoning
 - Return up to 3 matches maximum
 - Only include items with confidence above 30
-- If no matches, return []
+- If the item type doesn't match ANY lost item, return []
 - confidence is a number 0-100
 - Be specific about visual features in reasoning`
 
@@ -34,7 +43,7 @@ Rules:
             { type: 'text', text: prompt },
           ],
         }],
-        temperature: 0.2,
+        temperature: 0.1,
         max_tokens: 1024,
       }),
     })
