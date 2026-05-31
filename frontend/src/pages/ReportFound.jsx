@@ -68,6 +68,27 @@ function PhotoZone({ label, hint, preview, onFile, error, fileRef, cameraRef, re
   )
 }
 
+// Compress image to max 800px width at 70% quality before sending to Groq
+function compressImage(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      const maxW = 800
+      const scale = Math.min(1, maxW / img.width)
+      const canvas = document.createElement('canvas')
+      canvas.width = img.width * scale
+      canvas.height = img.height * scale
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height)
+      URL.revokeObjectURL(url)
+      const compressed = canvas.toDataURL('image/jpeg', 0.7)
+      resolve(compressed.split(',')[1])
+    }
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Image load failed')) }
+    img.src = url
+  })
+}
+
 export default function ReportFound() {
   const [frontImage, setFrontImage] = useState(null)
   const [backImage, setBackImage] = useState(null)
@@ -146,16 +167,11 @@ export default function ReportFound() {
       let aiMatches = []
 
       if (lostItems.length === 0) {
-        // No lost items yet — save and log, owner will be matched when they report
         addToast('No lost reports yet — your find has been logged. The owner will be notified when they report it!', 'info')
       } else {
-        const frontBase64 = await new Promise((res, rej) => {
-          const reader = new FileReader()
-          reader.onload = e => res(e.target.result.split(',')[1])
-          reader.onerror = rej
-          reader.readAsDataURL(frontImage)
-        })
-        aiMatches = await analyzeFoundItem(frontBase64, frontImage.type, lostItems)
+        // Compress image before sending to Groq to avoid request size limits
+        const frontBase64 = await compressImage(frontImage)
+        aiMatches = await analyzeFoundItem(frontBase64, 'image/jpeg', lostItems)
       }
 
       const result = await addFoundItem({
