@@ -68,20 +68,20 @@ function PhotoZone({ label, hint, preview, onFile, error, fileRef, cameraRef, re
   )
 }
 
-// Compress for Firestore storage (max 1000px, 75% quality — stays under 1MB limit)
+// Compress for Firestore storage (max 600px, 60% quality — safely under 1MB even for iPhone photos)
 function compressForStorage(file) {
   return new Promise((resolve, reject) => {
     const img = new Image()
     const url = URL.createObjectURL(file)
     img.onload = () => {
-      const maxW = 1000
+      const maxW = 600
       const scale = Math.min(1, maxW / img.width)
       const canvas = document.createElement('canvas')
       canvas.width = img.width * scale
       canvas.height = img.height * scale
       canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height)
       URL.revokeObjectURL(url)
-      resolve(canvas.toDataURL('image/jpeg', 0.75))
+      resolve(canvas.toDataURL('image/jpeg', 0.6))
     }
     img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Image load failed')) }
     img.src = url
@@ -179,7 +179,7 @@ export default function ReportFound() {
       const gpsData = await getGPS()
       setGps(gpsData)
 
-      // Compress images before saving to Firestore (stays under 1MB field limit)
+      // Compress images before saving to Firestore (safely under 1MB field limit)
       const frontBase64Full = await compressForStorage(frontImage)
       const backBase64Full = backImage ? await compressForStorage(backImage) : null
 
