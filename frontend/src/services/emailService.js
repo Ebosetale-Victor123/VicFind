@@ -25,6 +25,9 @@ export async function sendMatchEmail({
         map_link: mapLink || `${window.location.origin}/heatmap`,
         cta_display: 'display:block',
         reunion_display: 'display:none',
+        confidence_display: 'display:block',
+        analysis_display: 'display:block',
+        finder_name_display: 'display:block',
         owner_reunion_id: '',
         finder_reunion_id: '',
       },
@@ -61,6 +64,9 @@ export async function sendOwnerReunionEmail({
         map_link: '',
         cta_display: 'display:none',
         reunion_display: 'display:block',
+        confidence_display: 'display:none',
+        analysis_display: 'display:none',
+        finder_name_display: 'display:block',
         owner_reunion_id: ownerReunionId || 'N/A',
         finder_reunion_id: finderReunionId || 'N/A',
       },
@@ -74,15 +80,20 @@ export async function sendOwnerReunionEmail({
 
 export async function sendFinderEmail({
   finderName, finderEmail, ownerName, ownerPhone,
-  itemName, reward, ownerReunionId, finderReunionId, imei, category
+  itemName, reward, ownerReunionId, finderReunionId, imei, category,
+  privateDetails
 }) {
   try {
     let deviceVerifyLine = ''
     if (imei && category === 'Phone') {
-      deviceVerifyLine = `📱 Device IMEI: ${imei} — Ask the owner to dial *#06# on the phone. The number shown MUST match this. If it doesn't, do NOT hand over the device.`
+      deviceVerifyLine = `📱 Device IMEI: ${imei} — Ask them to dial *#06# on the phone. The number shown MUST match this.`
     } else if (imei && category === 'Laptop') {
-      deviceVerifyLine = `💻 Serial Number: ${imei} — Ask the owner to find the serial on the laptop (sticker underneath or in settings). It MUST match this. If it doesn't, do NOT hand over the device.`
+      deviceVerifyLine = `💻 Serial Number: ${imei} — Ask them to find the serial (sticker underneath or in settings). It MUST match this.`
     }
+
+    const privateDetailsLine = privateDetails
+      ? privateDetails
+      : 'No private details provided — check whatever the claimant describes against the actual item in your hand.'
 
     await emailjs.send(
       import.meta.env.VITE_EMAILJS_SERVICE_ID,
@@ -97,6 +108,7 @@ export async function sendFinderEmail({
         owner_reunion_id: ownerReunionId || 'N/A',
         finder_reunion_id: finderReunionId || 'N/A',
         device_verify_line: deviceVerifyLine,
+        private_details_line: privateDetailsLine,
       },
       import.meta.env.VITE_EMAILJS_PUBLIC_KEY
     )

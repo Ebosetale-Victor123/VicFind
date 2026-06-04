@@ -9,7 +9,7 @@ import LoadingSpinner from '../components/LoadingSpinner'
 
 const categories = ['Phone', 'Laptop', 'Other Electronics', 'Clothing', 'Accessories', 'Books/Notes', 'ID/Cards', 'Keys', 'Bag/Wallet', 'Other']
 const today = new Date().toISOString().split('T')[0]
-const init = { name: '', email: '', phone: '', itemName: '', category: '', color: '', description: '', location: '', dateLost: '', reward: '', imei: '', photo: '' }
+const init = { name: '', email: '', phone: '', itemName: '', category: '', color: '', description: '', location: '', dateLost: '', reward: '', imei: '', photo: '', privateDetails: '' }
 
 function Field({ label, required, error, hint, children }) {
   return (
@@ -56,6 +56,8 @@ export default function ReportLost() {
     if (!form.color.trim()) e.color = 'Required'
     if (!form.description.trim()) e.description = 'Required'
     else if (form.description.trim().length < 30) e.description = `Min 30 chars (${form.description.trim().length}/30)`
+    if (!form.privateDetails.trim()) e.privateDetails = 'Required — this protects your item from false claims'
+    else if (form.privateDetails.trim().length < 15) e.privateDetails = `Min 15 chars (${form.privateDetails.trim().length}/15)`
     if (!form.location.trim()) e.location = 'Required'
     if (!form.dateLost) e.dateLost = 'Required'
     else if (form.dateLost > today) e.dateLost = 'Cannot be a future date'
@@ -80,7 +82,6 @@ export default function ReportLost() {
         if (activeFound.length > 0) {
           addToast('Checking existing found items for matches...', 'info')
 
-          // Build a fake "lost items list" with just this new item for the AI
           const thisLostItem = [{
             id: result.id,
             itemName: form.itemName,
@@ -97,7 +98,6 @@ export default function ReportLost() {
 
           for (const foundItem of activeFound) {
             try {
-              // Extract base64 from the stored image URL
               const base64 = foundItem.imageUrl.includes(',')
                 ? foundItem.imageUrl.split(',')[1]
                 : foundItem.imageUrl
@@ -127,11 +127,9 @@ export default function ReportLost() {
           }
 
           if (matches.length > 0) {
-            // Sort by confidence
             matches.sort((a, b) => b.confidence - a.confidence)
             setReverseMatches(matches)
 
-            // Auto-notify owner via email for top match
             const topMatch = matches[0]
             try {
               await addNotification({
@@ -161,7 +159,6 @@ export default function ReportLost() {
         }
       } catch (reverseErr) {
         console.error('Reverse match failed:', reverseErr)
-        // Don't block submission if reverse match fails
       }
 
       setSubmitted(result)
@@ -184,7 +181,6 @@ export default function ReportLost() {
             We'll email <strong style={{ color: 'var(--text)' }}>{form.email}</strong> the moment AI finds a match.
           </p>
 
-          {/* Reverse match found banner */}
           {reverseMatches.length > 0 && (
             <div style={{ padding: '1rem', borderRadius: '0.75rem', backgroundColor: 'rgba(0,212,170,0.1)', border: '1px solid rgba(0,212,170,0.3)', marginBottom: '1rem', textAlign: 'left' }}>
               <p style={{ fontFamily: 'Space Mono', fontWeight: 700, color: '#00d4aa', margin: '0 0 6px', fontSize: '0.85rem' }}>
@@ -288,6 +284,17 @@ export default function ReportLost() {
               <span style={{ position: 'absolute', bottom: 8, right: 12, fontSize: '0.75rem', fontFamily: 'Space Mono', color: form.description.length < 30 ? '#ff4d6d' : 'var(--muted)' }}>{form.description.length}/30</span>
             </div>
           </Field>
+
+          {/* Private Identifying Details — anti-theft (REQUIRED) */}
+          <div style={{ padding: '1rem', borderRadius: '0.75rem', border: `1px solid ${errors.privateDetails ? '#ff4d6d' : 'rgba(245,158,11,0.3)'}`, backgroundColor: 'rgba(245,158,11,0.06)' }}>
+            <p style={{ fontFamily: 'Space Mono', fontWeight: 700, fontSize: '0.8rem', color: '#f59e0b', margin: '0 0 6px' }}>🛡️ Private Identifying Details <span style={{ color: '#ff4d6d' }}>*</span></p>
+            <p style={{ fontFamily: 'Inter', fontSize: '0.75rem', color: 'var(--muted)', margin: '0 0 14px', lineHeight: 1.5 }}>
+              Required. List hidden details only the true owner would know — things NOT visible in photos. Scratches and their location, what's written or stored on it, contents inside, wear marks, stickers underneath, etc. This is kept private and only used to verify it's really yours. The more specific, the safer.
+            </p>
+            <Field label="Hidden Details (private)" hint="e.g. Small dent on bottom-left corner, faded Gionee logo, blue tape on the cable end, 10000mAh printed on back" error={errors.privateDetails}>
+              <textarea className="input-base" style={{ resize: 'none' }} rows={3} value={form.privateDetails} onChange={set('privateDetails')} placeholder="Describe unique marks, contents, or wear that aren't obvious from a photo..." />
+            </Field>
+          </div>
 
           <div className="two-col">
             <Field label="Where You Lost It" required error={errors.location}>

@@ -37,20 +37,21 @@ export default function Verify() {
     try {
       await markItemReunited(lostItemId, foundItemId)
 
-      // Send finder email with owner contact + both reunion IDs
+      // Send finder email with owner contact + both reunion IDs + verification info
       if (foundItem.finderEmail) {
-       await sendFinderEmail({
-  finderName: foundItem.finderName,
-  finderEmail: foundItem.finderEmail,
-  ownerName: lostItem.name,
-  ownerPhone: lostItem.phone,
-  itemName: lostItem.itemName,
-  reward: lostItem.reward,
-  ownerReunionId: lostItem.ownerReunionId,
-  finderReunionId: foundItem.finderReunionId,
-  imei: lostItem.imei,
-  category: lostItem.category,
-})
+        await sendFinderEmail({
+          finderName: foundItem.finderName,
+          finderEmail: foundItem.finderEmail,
+          ownerName: lostItem.name,
+          ownerPhone: lostItem.phone,
+          itemName: lostItem.itemName,
+          reward: lostItem.reward,
+          ownerReunionId: lostItem.ownerReunionId,
+          finderReunionId: foundItem.finderReunionId,
+          imei: lostItem.imei,
+          category: lostItem.category,
+          privateDetails: lostItem.privateDetails,
+        })
       }
 
       // Send owner email with finder contact + both reunion IDs
@@ -133,7 +134,6 @@ export default function Verify() {
             <p style={{ fontFamily: 'Inter', fontSize: '0.8rem', color: 'var(--muted)', marginBottom: 10 }}>
               📍 Found at: {foundItem.location}
             </p>
-            {/* Google Maps link — no API key needed */}
             <a href={mapsUrl} target="_blank" rel="noreferrer"
               style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: 'Inter', fontWeight: 600, fontSize: '0.85rem', color: '#6c63ff', textDecoration: 'none', padding: '0.5rem 0.875rem', borderRadius: '0.5rem', border: '1px solid rgba(108,99,255,0.3)', backgroundColor: 'rgba(108,99,255,0.08)', transition: 'all 0.2s' }}>
               🗺️ View found location on Google Maps →
