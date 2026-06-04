@@ -240,6 +240,7 @@ export default function ReportFound() {
         confidence: match.confidence,
         reasoning: match.reasoning,
         finderName,
+        finderNotes: notes,  
         lostItemId: match.lostItemId,
         foundItemId,
         mapLink: `${window.location.origin}/heatmap`,

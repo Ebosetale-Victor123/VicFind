@@ -2,7 +2,7 @@ import emailjs from '@emailjs/browser'
 
 export async function sendMatchEmail({
   ownerName, ownerEmail, itemName, confidence, reasoning,
-  finderName, foundItemId, lostItemId, mapLink
+  finderName, finderNotes, foundItemId, lostItemId, mapLink
 }) {
   try {
     await emailjs.send(
@@ -15,6 +15,7 @@ export async function sendMatchEmail({
         confidence,
         reasoning,
         finder_name: finderName || 'Someone',
+        finder_notes_line: finderNotes ? `📝 Finder's Notes: ${finderNotes}` : '',
         email_subject: 'Possible Match Found!',
         email_intro: 'Great news! Our AI found a possible match for your lost item:',
         finder_phone_line: '',
@@ -50,6 +51,7 @@ export async function sendOwnerReunionEmail({
         confidence: '',
         reasoning: '',
         finder_name: finderName,
+        finder_notes_line: '',
         email_subject: '🎉 Your Item Is Coming Back!',
         email_intro: `You confirmed your item has been found! Here is everything you need to arrange the handover:`,
         finder_phone_line: `📞 Finder's Phone: ${finderPhone || 'Not provided'}`,
@@ -72,9 +74,16 @@ export async function sendOwnerReunionEmail({
 
 export async function sendFinderEmail({
   finderName, finderEmail, ownerName, ownerPhone,
-  itemName, reward, ownerReunionId, finderReunionId
+  itemName, reward, ownerReunionId, finderReunionId, imei, category
 }) {
   try {
+    let deviceVerifyLine = ''
+    if (imei && category === 'Phone') {
+      deviceVerifyLine = `📱 Device IMEI: ${imei} — Ask the owner to dial *#06# on the phone. The number shown MUST match this. If it doesn't, do NOT hand over the device.`
+    } else if (imei && category === 'Laptop') {
+      deviceVerifyLine = `💻 Serial Number: ${imei} — Ask the owner to find the serial on the laptop (sticker underneath or in settings). It MUST match this. If it doesn't, do NOT hand over the device.`
+    }
+
     await emailjs.send(
       import.meta.env.VITE_EMAILJS_SERVICE_ID,
       import.meta.env.VITE_EMAILJS_FINDER_TEMPLATE_ID,
@@ -87,6 +96,7 @@ export async function sendFinderEmail({
         reward: reward || 'No reward specified',
         owner_reunion_id: ownerReunionId || 'N/A',
         finder_reunion_id: finderReunionId || 'N/A',
+        device_verify_line: deviceVerifyLine,
       },
       import.meta.env.VITE_EMAILJS_PUBLIC_KEY
     )

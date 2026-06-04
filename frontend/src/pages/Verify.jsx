@@ -39,16 +39,18 @@ export default function Verify() {
 
       // Send finder email with owner contact + both reunion IDs
       if (foundItem.finderEmail) {
-        await sendFinderEmail({
-          finderName: foundItem.finderName,
-          finderEmail: foundItem.finderEmail,
-          ownerName: lostItem.name,
-          ownerPhone: lostItem.phone,
-          itemName: lostItem.itemName,
-          reward: lostItem.reward,
-          ownerReunionId: lostItem.ownerReunionId,
-          finderReunionId: foundItem.finderReunionId,
-        })
+       await sendFinderEmail({
+  finderName: foundItem.finderName,
+  finderEmail: foundItem.finderEmail,
+  ownerName: lostItem.name,
+  ownerPhone: lostItem.phone,
+  itemName: lostItem.itemName,
+  reward: lostItem.reward,
+  ownerReunionId: lostItem.ownerReunionId,
+  finderReunionId: foundItem.finderReunionId,
+  imei: lostItem.imei,
+  category: lostItem.category,
+})
       }
 
       // Send owner email with finder contact + both reunion IDs
