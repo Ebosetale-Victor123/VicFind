@@ -1,13 +1,16 @@
 import { useState } from 'react'
 import { getLostItems, getFoundItems, getNotifications, markItemClaimed, markItemActive, deleteLostItem, deleteFoundItem, deleteNotification, clearAllData } from '../services/firestoreService'
 import LoadingSpinner from '../components/LoadingSpinner'
+import { Lock, RefreshCw, Trash2, Circle, Bot, PartyPopper, CheckCircle2, RotateCcw, User, Mail, MapPin, Calendar, Phone } from 'lucide-react'
 
 const ADMIN_PASSWORD = 'iamawesome'
 
-function StatCard({ value, label, color, icon }) {
+function StatCard({ value, label, color, Icon, fill }) {
   return (
     <div className="card" style={{ padding: '1.25rem', textAlign: 'center' }}>
-      <div style={{ fontSize: '1.5rem', marginBottom: 8 }}>{icon}</div>
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
+        <Icon size={22} color={color} {...(fill ? { fill: color, strokeWidth: 0 } : {})} />
+      </div>
       <div style={{ fontFamily: 'Space Mono', fontWeight: 700, fontSize: '1.8rem', color }}>{value}</div>
       <div style={{ fontFamily: 'Inter', fontSize: '0.75rem', color: 'var(--muted)', marginTop: 4 }}>{label}</div>
     </div>
@@ -63,7 +66,7 @@ export default function Admin() {
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, backgroundColor: 'var(--bg)' }}>
         <div className="card" style={{ padding: '2.5rem', maxWidth: 380, width: '100%' }}>
           <div style={{ textAlign: 'center', marginBottom: 32 }}>
-            <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>🔐</div>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}><Lock size={36} color="#6c63ff" /></div>
             <h1 style={{ fontFamily: 'Space Mono', fontWeight: 700, fontSize: '1.3rem', color: 'var(--text)', margin: 0 }}>Admin Dashboard</h1>
             <p style={{ fontFamily: 'Inter', color: 'var(--muted)', fontSize: '0.85rem', marginTop: 6 }}>VicFind · Caleb University</p>
           </div>
@@ -98,13 +101,13 @@ export default function Admin() {
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <div className="admin-header">
           <div>
-            <h1 style={{ fontFamily: 'Space Mono', fontWeight: 700, fontSize: 'clamp(1.3rem, 3vw, 1.8rem)', color: 'var(--text)', margin: 0 }}>🔐 Admin Dashboard</h1>
+            <h1 style={{ fontFamily: 'Space Mono', fontWeight: 700, fontSize: 'clamp(1.3rem, 3vw, 1.8rem)', color: 'var(--text)', margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}><Lock size={24} color="#6c63ff" /> Admin Dashboard</h1>
             <p style={{ fontFamily: 'Inter', color: 'var(--muted)', margin: '4px 0 0', fontSize: '0.875rem' }}>VicFind Control Center · Caleb University</p>
           </div>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            <button className="btn-ghost" style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }} onClick={loadData}>🔄 Refresh</button>
+            <button className="btn-ghost" style={{ fontSize: '0.875rem', padding: '0.5rem 1rem', display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={loadData}><RefreshCw size={15} /> Refresh</button>
             {!confirmClear ? (
-              <button onClick={() => setConfirmClear(true)} style={{ background: 'rgba(255,77,109,0.1)', border: '1px solid rgba(255,77,109,0.4)', color: '#ff4d6d', fontFamily: 'Inter', fontWeight: 600, padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '0.875rem' }}>🗑️ Clear All</button>
+              <button onClick={() => setConfirmClear(true)} style={{ background: 'rgba(255,77,109,0.1)', border: '1px solid rgba(255,77,109,0.4)', color: '#ff4d6d', fontFamily: 'Inter', fontWeight: 600, padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '0.875rem', display: 'inline-flex', alignItems: 'center', gap: 6 }}><Trash2 size={15} /> Clear All</button>
             ) : (
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                 <span style={{ fontFamily: 'Inter', fontSize: '0.8rem', color: '#ff4d6d' }}>Are you sure?</span>
@@ -116,21 +119,24 @@ export default function Admin() {
         </div>
 
         <div className="admin-stats" style={{ marginBottom: 32 }}>
-          <StatCard value={activeCount} label="Active Lost Items" color="#ff4d6d" icon="🔴" />
-          <StatCard value={foundItems.length} label="Found Reports" color="#00d4aa" icon="🟢" />
-          <StatCard value={highConfMatches} label="AI Matches Made" color="#6c63ff" icon="🤖" />
-          <StatCard value={reunitedCount} label="Items Reunited" color="#f59e0b" icon="🎉" />
+          <StatCard value={activeCount} label="Active Lost Items" color="#ff4d6d" Icon={Circle} fill />
+          <StatCard value={foundItems.length} label="Found Reports" color="#00d4aa" Icon={Circle} fill />
+          <StatCard value={highConfMatches} label="AI Matches Made" color="#6c63ff" Icon={Bot} />
+          <StatCard value={reunitedCount} label="Items Reunited" color="#f59e0b" Icon={PartyPopper} />
         </div>
 
         <div style={{ display: 'flex', gap: 8, marginBottom: 24, flexWrap: 'wrap' }}>
-          {[{ key: 'lost', label: `🔴 Lost (${lostItems.length})` }, { key: 'found', label: `🟢 Found (${foundItems.length})` }, { key: 'matches', label: `🤖 Matches (${notifications.length})` }].map(t => (
+          {[{ key: 'lost', label: `Lost (${lostItems.length})`, Icon: Circle, color: '#ff4d6d' }, { key: 'found', label: `Found (${foundItems.length})`, Icon: Circle, color: '#00d4aa' }, { key: 'matches', label: `Matches (${notifications.length})`, Icon: Bot, color: '#6c63ff' }].map(t => (
             <button key={t.key} onClick={() => setTab(t.key)} style={{
               fontFamily: 'Inter', fontWeight: 500, fontSize: '0.875rem', padding: '0.5rem 1.25rem',
               borderRadius: '0.5rem', cursor: 'pointer', border: '1px solid',
               borderColor: tab === t.key ? '#6c63ff' : 'var(--border)',
               backgroundColor: tab === t.key ? 'rgba(108,99,255,0.15)' : 'transparent',
               color: tab === t.key ? '#6c63ff' : 'var(--muted)',
-            }}>{t.label}</button>
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+            }}>
+              <t.Icon size={14} color={t.key === 'matches' ? undefined : t.color} {...(t.key !== 'matches' ? { fill: t.color, strokeWidth: 0 } : {})} /> {t.label}
+            </button>
           ))}
         </div>
 
@@ -146,19 +152,19 @@ export default function Admin() {
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
                           <h3 style={{ fontFamily: 'Space Mono', fontWeight: 700, color: 'var(--text)', margin: 0, fontSize: '0.95rem' }}>{item.itemName}</h3>
-                          <span style={statusStyle(item.status)}>{item.status === 'reunited' ? '🎉 REUNITED' : item.status?.toUpperCase()}</span>
+                          <span style={statusStyle(item.status)}>{item.status === 'reunited' ? 'REUNITED' : item.status?.toUpperCase()}</span>
                         </div>
-                        <p style={{ fontFamily: 'Inter', fontSize: '0.8rem', color: 'var(--muted)', margin: '0 0 4px' }}>👤 {item.name} · 📧 {item.email}</p>
-                        <p style={{ fontFamily: 'Inter', fontSize: '0.8rem', color: 'var(--muted)', margin: '0 0 4px' }}>📍 {item.location} · 📅 {item.dateLost}</p>
+                        <p style={{ fontFamily: 'Inter', fontSize: '0.8rem', color: 'var(--muted)', margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}><User size={13} /> {item.name} · <Mail size={13} /> {item.email}</p>
+                        <p style={{ fontFamily: 'Inter', fontSize: '0.8rem', color: 'var(--muted)', margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}><MapPin size={13} /> {item.location} · <Calendar size={13} /> {item.dateLost}</p>
                         {item.ownerReunionId && <p style={{ fontFamily: 'Space Mono', fontSize: '0.72rem', color: 'var(--muted)', margin: 0 }}>ID: <span style={{ color: '#6c63ff' }}>{item.ownerReunionId}</span></p>}
                       </div>
                       <div className="item-actions">
                         {item.status !== 'reunited' && (
                           item.status === 'active'
-                            ? <button onClick={async () => { await markItemClaimed(item.id); setLostItems(p => p.map(i => i.id === item.id ? { ...i, status: 'claimed' } : i)) }} style={{ background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.4)', color: '#f59e0b', fontFamily: 'Inter', fontWeight: 600, padding: '0.4rem 0.875rem', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '0.8rem' }}>✅ Claimed</button>
-                            : <button onClick={async () => { await markItemActive(item.id); setLostItems(p => p.map(i => i.id === item.id ? { ...i, status: 'active' } : i)) }} style={{ background: 'rgba(0,212,170,0.12)', border: '1px solid rgba(0,212,170,0.4)', color: '#00d4aa', fontFamily: 'Inter', fontWeight: 600, padding: '0.4rem 0.875rem', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '0.8rem' }}>🔄 Reactivate</button>
+                            ? <button onClick={async () => { await markItemClaimed(item.id); setLostItems(p => p.map(i => i.id === item.id ? { ...i, status: 'claimed' } : i)) }} style={{ background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.4)', color: '#f59e0b', fontFamily: 'Inter', fontWeight: 600, padding: '0.4rem 0.875rem', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: 5 }}><CheckCircle2 size={13} /> Claimed</button>
+                            : <button onClick={async () => { await markItemActive(item.id); setLostItems(p => p.map(i => i.id === item.id ? { ...i, status: 'active' } : i)) }} style={{ background: 'rgba(0,212,170,0.12)', border: '1px solid rgba(0,212,170,0.4)', color: '#00d4aa', fontFamily: 'Inter', fontWeight: 600, padding: '0.4rem 0.875rem', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: 5 }}><RotateCcw size={13} /> Reactivate</button>
                         )}
-                        <button onClick={async () => { await deleteLostItem(item.id); setLostItems(p => p.filter(i => i.id !== item.id)) }} style={{ background: 'rgba(255,77,109,0.1)', border: '1px solid rgba(255,77,109,0.3)', color: '#ff4d6d', fontFamily: 'Inter', fontWeight: 600, padding: '0.4rem 0.875rem', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '0.8rem' }}>🗑️</button>
+                        <button onClick={async () => { await deleteLostItem(item.id); setLostItems(p => p.filter(i => i.id !== item.id)) }} style={{ background: 'rgba(255,77,109,0.1)', border: '1px solid rgba(255,77,109,0.3)', color: '#ff4d6d', fontFamily: 'Inter', fontWeight: 600, padding: '0.4rem 0.875rem', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center' }}><Trash2 size={14} /></button>
                       </div>
                     </div>
                   </div>
@@ -177,13 +183,13 @@ export default function Admin() {
                         <div style={{ minWidth: 0 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
                             <h3 style={{ fontFamily: 'Space Mono', fontWeight: 700, color: 'var(--text)', margin: 0, fontSize: '0.9rem' }}>Found by {item.finderName}</h3>
-                            {item.status === 'reunited' && <span style={statusStyle('reunited')}>🎉 REUNITED</span>}
+                            {item.status === 'reunited' && <span style={statusStyle('reunited')}>REUNITED</span>}
                           </div>
-                          <p style={{ fontFamily: 'Inter', fontSize: '0.8rem', color: 'var(--muted)', margin: '0 0 2px' }}>📞 {item.finderPhone || 'N/A'} · 📍 {item.location}</p>
+                          <p style={{ fontFamily: 'Inter', fontSize: '0.8rem', color: 'var(--muted)', margin: '0 0 2px', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}><Phone size={13} /> {item.finderPhone || 'N/A'} · <MapPin size={13} /> {item.location}</p>
                           {item.finderReunionId && <p style={{ fontFamily: 'Space Mono', fontSize: '0.72rem', color: 'var(--muted)', margin: 0 }}>ID: <span style={{ color: '#00d4aa' }}>{item.finderReunionId}</span></p>}
                         </div>
                       </div>
-                      <button onClick={async () => { await deleteFoundItem(item.id); setFoundItems(p => p.filter(i => i.id !== item.id)) }} style={{ background: 'rgba(255,77,109,0.1)', border: '1px solid rgba(255,77,109,0.3)', color: '#ff4d6d', fontFamily: 'Inter', fontWeight: 600, padding: '0.4rem 0.875rem', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '0.8rem', flexShrink: 0 }}>🗑️</button>
+                      <button onClick={async () => { await deleteFoundItem(item.id); setFoundItems(p => p.filter(i => i.id !== item.id)) }} style={{ background: 'rgba(255,77,109,0.1)', border: '1px solid rgba(255,77,109,0.3)', color: '#ff4d6d', fontFamily: 'Inter', fontWeight: 600, padding: '0.4rem 0.875rem', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '0.8rem', flexShrink: 0, display: 'inline-flex', alignItems: 'center' }}><Trash2 size={14} /></button>
                     </div>
                   </div>
                 ))}
@@ -205,7 +211,7 @@ export default function Admin() {
                         <p style={{ fontFamily: 'Inter', fontSize: '0.8rem', color: 'var(--muted)', margin: '0 0 2px' }}>Owner: <strong style={{ color: 'var(--text)' }}>{notif.ownerName}</strong> · {notif.ownerEmail}</p>
                         <p style={{ fontFamily: 'Inter', fontSize: '0.75rem', color: 'var(--muted)', margin: 0 }}>{new Date(notif.createdAt).toLocaleString()}</p>
                       </div>
-                      <button onClick={async () => { await deleteNotification(notif.id); setNotifications(p => p.filter(i => i.id !== notif.id)) }} style={{ background: 'rgba(255,77,109,0.1)', border: '1px solid rgba(255,77,109,0.3)', color: '#ff4d6d', fontFamily: 'Inter', fontWeight: 600, padding: '0.4rem 0.875rem', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '0.8rem', flexShrink: 0 }}>🗑️</button>
+                      <button onClick={async () => { await deleteNotification(notif.id); setNotifications(p => p.filter(i => i.id !== notif.id)) }} style={{ background: 'rgba(255,77,109,0.1)', border: '1px solid rgba(255,77,109,0.3)', color: '#ff4d6d', fontFamily: 'Inter', fontWeight: 600, padding: '0.4rem 0.875rem', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '0.8rem', flexShrink: 0, display: 'inline-flex', alignItems: 'center' }}><Trash2 size={14} /></button>
                     </div>
                   </div>
                 ))}
