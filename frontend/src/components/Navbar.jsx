@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useState } from 'react'
 import { useTheme } from './ThemeContext'
+import { Sun, Moon } from 'lucide-react'
 
 const links = [
   { to: '/', label: 'Home' },
@@ -50,7 +51,7 @@ export default function Navbar() {
               cursor: 'pointer', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
               transition: 'all 0.2s',
             }}>
-              {dark ? '☀️' : '🌙'}
+              {dark ? <Sun size={16} /> : <Moon size={16} />}
             </button>
           </div>
 

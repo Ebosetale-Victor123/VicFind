@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { getStats } from '../services/firestoreService'
 import { useTheme } from '../components/ThemeContext'
+import { Circle, Bot, PartyPopper, Camera, Lock, Map, Mail, ShieldCheck, MapPin } from 'lucide-react'
 
 export default function Home() {
   const { dark } = useTheme()
@@ -56,14 +57,14 @@ export default function Home() {
           </p>
 
           <div className="hero-buttons" style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            <Link to="/report-lost" className="btn-primary" style={{ textDecoration: 'none', fontSize: '0.95rem', padding: '0.875rem 1.75rem' }}>
-              🔴 Report Lost Item
+            <Link to="/report-lost" className="btn-primary" style={{ textDecoration: 'none', fontSize: '0.95rem', padding: '0.875rem 1.75rem', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+              <Circle size={16} fill="#ff4d6d" strokeWidth={0} /> Report Lost Item
             </Link>
-            <Link to="/report-found" className="btn-ghost" style={{ textDecoration: 'none', fontSize: '0.95rem', padding: '0.875rem 1.75rem' }}>
-              🟢 Report Found Item
+            <Link to="/report-found" className="btn-ghost" style={{ textDecoration: 'none', fontSize: '0.95rem', padding: '0.875rem 1.75rem', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+              <Circle size={16} fill="#00d4aa" strokeWidth={0} /> Report Found Item
             </Link>
-            <Link to="/heatmap" className="btn-ghost" style={{ textDecoration: 'none', fontSize: '0.95rem', padding: '0.875rem 1.75rem', borderColor: '#00d4aa', color: '#00d4aa' }}>
-              🗺️ Campus Heatmap
+            <Link to="/heatmap" className="btn-ghost" style={{ textDecoration: 'none', fontSize: '0.95rem', padding: '0.875rem 1.75rem', borderColor: '#00d4aa', color: '#00d4aa', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+              <Map size={16} /> Campus Heatmap
             </Link>
           </div>
         </div>
@@ -73,13 +74,15 @@ export default function Home() {
       <div style={{ padding: '60px 24px', maxWidth: 1100, margin: '0 auto' }}>
         <div className="stats-grid" style={{ display: 'grid', gap: 20, marginBottom: 80 }}>
           {[
-            { val: stats.lostCount, label: 'Active Lost Reports', color: '#ff4d6d', icon: '🔴' },
-            { val: stats.foundCount, label: 'Items Found', color: '#00d4aa', icon: '🟢' },
-            { val: stats.matchCount, label: 'AI Matches Made', color: '#6c63ff', icon: '🤖' },
-            { val: stats.reunitedCount, label: 'Successful Reunions', color: '#f59e0b', icon: '🎉' },
+            { val: stats.lostCount, label: 'Active Lost Reports', color: '#ff4d6d', Icon: Circle, fill: true },
+            { val: stats.foundCount, label: 'Items Found', color: '#00d4aa', Icon: Circle, fill: true },
+            { val: stats.matchCount, label: 'AI Matches Made', color: '#6c63ff', Icon: Bot, fill: false },
+            { val: stats.reunitedCount, label: 'Successful Reunions', color: '#f59e0b', Icon: PartyPopper, fill: false },
           ].map(s => (
             <div key={s.label} className="card stat-card" style={{ padding: '1.5rem', textAlign: 'center' }}>
-              <div style={{ fontSize: '1.5rem', marginBottom: 8 }}>{s.icon}</div>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
+                <s.Icon size={24} color={s.color} {...(s.fill ? { fill: s.color, strokeWidth: 0 } : {})} />
+              </div>
               <div style={{ fontFamily: 'Space Mono', fontWeight: 700, fontSize: '2.2rem', color: s.color, lineHeight: 1 }}>{s.val}</div>
               <div style={{ fontFamily: 'Inter', fontSize: '0.8rem', color: 'var(--muted)', marginTop: 6 }}>{s.label}</div>
             </div>
@@ -116,13 +119,13 @@ export default function Home() {
         {/* Top row — 4 cards */}
         <div className="features-top" style={{ display: 'grid', gap: 16, marginBottom: 16 }}>
           {[
-            { icon: '🤖', title: 'AI Photo Matching', desc: 'VicFind AI compares found item photos against all lost reports with confidence scoring.' },
-            { icon: '📸', title: 'Dual Photo Verification', desc: 'Finders upload front and back photos so owners can be 100% sure before confirming.' },
-            { icon: '🔐', title: 'Reunion ID System', desc: 'Unique VF-OWN and VF-FND codes let both parties safely verify each other when meeting.' },
-            { icon: '🗺️', title: 'Campus Heatmap', desc: 'Satellite map showing where items are lost and found across Caleb University campus.' },
+            { Icon: Bot, title: 'AI Photo Matching', desc: 'VicFind AI compares found item photos against all lost reports with confidence scoring.' },
+            { Icon: Camera, title: 'Dual Photo Verification', desc: 'Finders upload front and back photos so owners can be 100% sure before confirming.' },
+            { Icon: Lock, title: 'Reunion ID System', desc: 'Unique VF-OWN and VF-FND codes let both parties safely verify each other when meeting.' },
+            { Icon: Map, title: 'Campus Heatmap', desc: 'Satellite map showing where items are lost and found across Caleb University campus.' },
           ].map(f => (
             <div key={f.title} className="card" style={{ padding: '1.25rem' }}>
-              <span style={{ fontSize: '1.5rem', display: 'block', marginBottom: 10 }}>{f.icon}</span>
+              <div style={{ marginBottom: 10 }}><f.Icon size={22} color="#6c63ff" /></div>
               <h4 style={{ fontFamily: 'Space Mono', fontWeight: 700, fontSize: '0.85rem', color: 'var(--text)', marginBottom: 6 }}>{f.title}</h4>
               <p style={{ fontFamily: 'Inter', fontSize: '0.8rem', color: 'var(--muted)', lineHeight: 1.6 }}>{f.desc}</p>
             </div>
@@ -132,11 +135,11 @@ export default function Home() {
         {/* Bottom row — 2 cards centered */}
         <div className="features-bottom" style={{ display: 'grid', gap: 16, margin: '0 auto' }}>
           {[
-            { icon: '📧', title: 'Two-Way Notifications', desc: 'Owner gets verify link. Finder gets owner contact + reward when owner confirms.' },
-            { icon: '🛡️', title: 'Privacy Protected', desc: "Contact details stay hidden until owner confirms the item is theirs. No early exposure." },
+            { Icon: Mail, title: 'Two-Way Notifications', desc: 'Owner gets verify link. Finder gets owner contact + reward when owner confirms.' },
+            { Icon: ShieldCheck, title: 'Privacy Protected', desc: "Contact details stay hidden until owner confirms the item is theirs. No early exposure." },
           ].map(f => (
             <div key={f.title} className="card" style={{ padding: '1.25rem' }}>
-              <span style={{ fontSize: '1.5rem', display: 'block', marginBottom: 10 }}>{f.icon}</span>
+              <div style={{ marginBottom: 10 }}><f.Icon size={22} color="#6c63ff" /></div>
               <h4 style={{ fontFamily: 'Space Mono', fontWeight: 700, fontSize: '0.85rem', color: 'var(--text)', marginBottom: 6 }}>{f.title}</h4>
               <p style={{ fontFamily: 'Inter', fontSize: '0.8rem', color: 'var(--muted)', lineHeight: 1.6 }}>{f.desc}</p>
             </div>

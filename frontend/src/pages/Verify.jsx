@@ -4,6 +4,7 @@ import { getLostItemById, getFoundItemById, markItemReunited } from '../services
 import { sendFinderEmail, sendOwnerReunionEmail } from '../services/emailService'
 import { useTheme } from '../components/ThemeContext'
 import LoadingSpinner from '../components/LoadingSpinner'
+import { PartyPopper, Mail, Phone, MapPin, Map, Lightbulb, Wallet, CheckCircle2, XCircle, Search, HelpCircle, Palette } from 'lucide-react'
 
 export default function Verify() {
   const { lostItemId, foundItemId } = useParams()
@@ -37,7 +38,6 @@ export default function Verify() {
     try {
       await markItemReunited(lostItemId, foundItemId)
 
-      // Send finder email with owner contact + both reunion IDs + verification info
       if (foundItem.finderEmail) {
         await sendFinderEmail({
           finderName: foundItem.finderName,
@@ -54,7 +54,6 @@ export default function Verify() {
         })
       }
 
-      // Send owner email with finder contact + both reunion IDs
       await sendOwnerReunionEmail({
         ownerName: lostItem.name,
         ownerEmail: lostItem.email,
@@ -85,7 +84,7 @@ export default function Verify() {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
         <div className="card" style={{ padding: '2.5rem', maxWidth: 420, width: '100%', textAlign: 'center' }}>
-          <div style={{ fontSize: '3rem', marginBottom: 16 }}>❓</div>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}><HelpCircle size={48} color="var(--muted)" /></div>
           <p style={{ fontFamily: 'Space Mono', fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>Item not found</p>
           <p style={{ fontFamily: 'Inter', color: 'var(--muted)', marginBottom: 24 }}>This verification link may have expired or already been used.</p>
           <Link to="/" className="btn-primary" style={{ textDecoration: 'none', justifyContent: 'center' }}>Go Home</Link>
@@ -104,14 +103,13 @@ export default function Verify() {
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
         <div className="card animate-fade-up" style={{ padding: '2.5rem', maxWidth: 520, width: '100%' }}>
           <div style={{ textAlign: 'center', marginBottom: 24 }}>
-            <div style={{ fontSize: '3.5rem', marginBottom: 8 }}>🎉</div>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}><PartyPopper size={48} color="#00d4aa" /></div>
             <h2 style={{ fontFamily: 'Space Mono', fontWeight: 700, fontSize: '1.5rem', color: '#00d4aa', marginBottom: 6 }}>Reunited!</h2>
             <p style={{ fontFamily: 'Inter', color: 'var(--muted)' }}>Your item has been marked as returned. Contact the finder to arrange pickup.</p>
           </div>
 
-          {/* Check your email banner */}
           <div style={{ padding: '0.875rem 1rem', borderRadius: '0.75rem', backgroundColor: 'rgba(108,99,255,0.12)', border: '1px solid rgba(108,99,255,0.3)', marginBottom: 20, display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-            <span style={{ fontSize: '1.4rem', flexShrink: 0 }}>📧</span>
+            <Mail size={20} color="#6c63ff" style={{ flexShrink: 0 }} />
             <div>
               <p style={{ fontFamily: 'Inter', fontWeight: 700, color: '#6c63ff', margin: '0 0 4px', fontSize: '0.9rem' }}>
                 Check your email!
@@ -122,25 +120,23 @@ export default function Verify() {
             </div>
           </div>
 
-          {/* Finder contact */}
           <div style={{ padding: '1rem', borderRadius: '0.75rem', backgroundColor: dark ? 'rgba(0,212,170,0.08)' : 'rgba(0,184,150,0.08)', border: '1px solid rgba(0,212,170,0.25)', marginBottom: 16 }}>
             <p style={{ fontFamily: 'Space Mono', fontSize: '0.7rem', color: 'var(--muted)', marginBottom: 8, letterSpacing: '0.05em' }}>FINDER'S CONTACT</p>
             <p style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: '1rem', color: 'var(--text)', marginBottom: 6 }}>{foundItem.finderName}</p>
             {foundItem.finderPhone && (
-              <a href={`tel:${foundItem.finderPhone}`} style={{ fontFamily: 'Inter', color: '#00d4aa', fontWeight: 700, fontSize: '1.15rem', textDecoration: 'none', display: 'block', marginBottom: 6 }}>
-                📞 {foundItem.finderPhone}
+              <a href={`tel:${foundItem.finderPhone}`} style={{ fontFamily: 'Inter', color: '#00d4aa', fontWeight: 700, fontSize: '1.15rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                <Phone size={18} /> {foundItem.finderPhone}
               </a>
             )}
-            <p style={{ fontFamily: 'Inter', fontSize: '0.8rem', color: 'var(--muted)', marginBottom: 10 }}>
-              📍 Found at: {foundItem.location}
+            <p style={{ fontFamily: 'Inter', fontSize: '0.8rem', color: 'var(--muted)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <MapPin size={14} /> Found at: {foundItem.location}
             </p>
             <a href={mapsUrl} target="_blank" rel="noreferrer"
               style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: 'Inter', fontWeight: 600, fontSize: '0.85rem', color: '#6c63ff', textDecoration: 'none', padding: '0.5rem 0.875rem', borderRadius: '0.5rem', border: '1px solid rgba(108,99,255,0.3)', backgroundColor: 'rgba(108,99,255,0.08)', transition: 'all 0.2s' }}>
-              🗺️ View found location on Google Maps →
+              <Map size={16} /> View found location on Google Maps
             </a>
           </div>
 
-          {/* Reunion IDs */}
           <div style={{ padding: '1rem', borderRadius: '0.75rem', backgroundColor: dark ? 'rgba(108,99,255,0.08)' : 'rgba(108,99,255,0.06)', border: '1px solid rgba(108,99,255,0.2)', marginBottom: 16 }}>
             <p style={{ fontFamily: 'Space Mono', fontSize: '0.7rem', color: 'var(--muted)', marginBottom: 6, letterSpacing: '0.05em' }}>REUNION VERIFICATION CODES</p>
             <p style={{ fontFamily: 'Inter', fontSize: '0.78rem', color: 'var(--muted)', marginBottom: 12 }}>
@@ -156,24 +152,23 @@ export default function Verify() {
                 <span className="reunion-badge reunion-finder">{foundItem.finderReunionId}</span>
               </div>
             </div>
-            <div style={{ marginTop: 12, padding: '8px 10px', borderRadius: '0.5rem', backgroundColor: 'rgba(108,99,255,0.08)' }}>
+            <div style={{ marginTop: 12, padding: '8px 10px', borderRadius: '0.5rem', backgroundColor: 'rgba(108,99,255,0.08)', display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+              <Lightbulb size={14} color="var(--muted)" style={{ flexShrink: 0, marginTop: 2 }} />
               <p style={{ fontFamily: 'Inter', fontSize: '0.75rem', color: 'var(--muted)', margin: 0 }}>
-                💡 These codes are also in your email — screenshot this page or check your inbox before the meetup.
+                These codes are also in your email — screenshot this page or check your inbox before the meetup.
               </p>
             </div>
           </div>
 
-          {/* Reward */}
           {lostItem.reward && (
             <div style={{ padding: '0.75rem 1rem', borderRadius: '0.75rem', backgroundColor: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)', marginBottom: 16 }}>
-              <p style={{ fontFamily: 'Inter', fontWeight: 600, color: '#f59e0b', margin: 0 }}>💰 Don't forget your reward: {lostItem.reward}</p>
+              <p style={{ fontFamily: 'Inter', fontWeight: 600, color: '#f59e0b', margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}><Wallet size={16} /> Don't forget your reward: {lostItem.reward}</p>
             </div>
           )}
 
-          {/* Finder notified */}
           {foundItem.finderEmail && (
             <div style={{ padding: '0.75rem 1rem', borderRadius: '0.75rem', backgroundColor: 'rgba(0,212,170,0.06)', border: '1px solid rgba(0,212,170,0.2)', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span>✅</span>
+              <CheckCircle2 size={18} color="#00d4aa" style={{ flexShrink: 0 }} />
               <p style={{ fontFamily: 'Inter', fontSize: '0.8rem', color: 'var(--muted)', margin: 0 }}>
                 <strong style={{ color: 'var(--text)' }}>{foundItem.finderName}</strong> has been notified by email with your contact details, reward info, and both Reunion IDs.
               </p>
@@ -190,7 +185,7 @@ export default function Verify() {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
         <div className="card" style={{ padding: '2.5rem', maxWidth: 420, width: '100%', textAlign: 'center' }}>
-          <div style={{ fontSize: '3rem', marginBottom: 16 }}>❌</div>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}><XCircle size={48} color="#ff4d6d" /></div>
           <h2 style={{ fontFamily: 'Space Mono', fontWeight: 700, fontSize: '1.3rem', color: 'var(--text)', marginBottom: 8 }}>Not Your Item</h2>
           <p style={{ fontFamily: 'Inter', color: 'var(--muted)', marginBottom: 24 }}>No problem! Your lost item report is still active. We'll notify you if another match is found.</p>
           <Link to="/" className="btn-primary" style={{ textDecoration: 'none', justifyContent: 'center' }}>Back to VicFind</Link>
@@ -203,28 +198,26 @@ export default function Verify() {
     <div style={{ minHeight: '100vh', paddingTop: 96, paddingBottom: 64, padding: '6rem 1.5rem 4rem' }}>
       <div style={{ maxWidth: 640, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <div style={{ fontSize: '3rem', marginBottom: 12 }}>🔍</div>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}><Search size={44} color="#6c63ff" /></div>
           <h1 style={{ fontFamily: 'Space Mono', fontWeight: 700, fontSize: '1.8rem', color: 'var(--text)', marginBottom: 8 }}>Is this your item?</h1>
           <p style={{ fontFamily: 'Inter', color: 'var(--muted)' }}>Someone found an item that may be yours. Review both photos carefully before confirming.</p>
         </div>
 
-        {/* Your lost item */}
         <div className="card" style={{ padding: '1.25rem', marginBottom: 16 }}>
           <p style={{ fontFamily: 'Space Mono', fontSize: '0.7rem', color: 'var(--muted)', marginBottom: 10, letterSpacing: '0.05em' }}>YOUR LOST ITEM REPORT</p>
           <h3 style={{ fontFamily: 'Space Mono', fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>{lostItem.itemName}</h3>
-          <p style={{ fontFamily: 'Inter', fontSize: '0.875rem', color: 'var(--muted)', marginBottom: 4 }}>🎨 {lostItem.color}</p>
-          <p style={{ fontFamily: 'Inter', fontSize: '0.875rem', color: 'var(--muted)', marginBottom: 4 }}>📍 Lost at: {lostItem.location}</p>
+          <p style={{ fontFamily: 'Inter', fontSize: '0.875rem', color: 'var(--muted)', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}><Palette size={14} /> {lostItem.color}</p>
+          <p style={{ fontFamily: 'Inter', fontSize: '0.875rem', color: 'var(--muted)', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}><MapPin size={14} /> Lost at: {lostItem.location}</p>
           <p style={{ fontFamily: 'Inter', fontSize: '0.875rem', color: 'var(--muted)' }}>{lostItem.description}</p>
           {lostItem.photo && (
             <img src={lostItem.photo} alt="your item" style={{ width: '100%', borderRadius: '0.625rem', marginTop: 12, maxHeight: 180, objectFit: 'cover', border: '1px solid var(--border)' }} />
           )}
         </div>
 
-        {/* Found photos */}
         <div className="card" style={{ padding: '1.25rem', marginBottom: 24 }}>
           <p style={{ fontFamily: 'Space Mono', fontSize: '0.7rem', color: 'var(--muted)', marginBottom: 10, letterSpacing: '0.05em' }}>FOUND ITEM PHOTOS</p>
-          <p style={{ fontFamily: 'Inter', fontSize: '0.875rem', color: 'var(--muted)', marginBottom: 12 }}>
-            📍 Found at: <strong style={{ color: 'var(--text)' }}>{foundItem.location}</strong>
+          <p style={{ fontFamily: 'Inter', fontSize: '0.875rem', color: 'var(--muted)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <MapPin size={14} /> Found at: <strong style={{ color: 'var(--text)' }}>{foundItem.location}</strong>
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: foundItem.backImageUrl ? '1fr 1fr' : '1fr', gap: 12 }}>
             {foundItem.imageUrl && (
@@ -242,15 +235,14 @@ export default function Verify() {
           </div>
         </div>
 
-        {/* Decision buttons */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
           <button onClick={() => setDecision('denied')}
-            style={{ backgroundColor: 'rgba(255,77,109,0.1)', border: '1px solid rgba(255,77,109,0.4)', color: '#ff4d6d', fontFamily: 'Inter', fontWeight: 600, padding: '1rem', borderRadius: '0.75rem', cursor: 'pointer', fontSize: '1rem' }}>
-            ❌ Not My Item
+            style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: 'rgba(255,77,109,0.1)', border: '1px solid rgba(255,77,109,0.4)', color: '#ff4d6d', fontFamily: 'Inter', fontWeight: 600, padding: '1rem', borderRadius: '0.75rem', cursor: 'pointer', fontSize: '1rem' }}>
+            <XCircle size={18} /> Not My Item
           </button>
           <button onClick={handleConfirm} disabled={processing}
-            style={{ backgroundColor: 'rgba(0,212,170,0.15)', border: '1px solid rgba(0,212,170,0.4)', color: '#00d4aa', fontFamily: 'Inter', fontWeight: 600, padding: '1rem', borderRadius: '0.75rem', cursor: 'pointer', fontSize: '1rem' }}>
-            {processing ? '⏳ Processing...' : "✅ Yes, That's Mine!"}
+            style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: 'rgba(0,212,170,0.15)', border: '1px solid rgba(0,212,170,0.4)', color: '#00d4aa', fontFamily: 'Inter', fontWeight: 600, padding: '1rem', borderRadius: '0.75rem', cursor: 'pointer', fontSize: '1rem' }}>
+            {processing ? 'Processing...' : <><CheckCircle2 size={18} /> Yes, That's Mine!</>}
           </button>
         </div>
 

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getNotifications } from '../services/firestoreService'
 import LoadingSpinner from '../components/LoadingSpinner'
+import { Bot } from 'lucide-react'
 
 export default function Matches() {
   const [notifications, setNotifications] = useState([])
@@ -22,7 +23,7 @@ export default function Matches() {
           <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 80 }}><LoadingSpinner size="lg" /></div>
         ) : notifications.length === 0 ? (
           <div className="card" style={{ padding: '4rem', textAlign: 'center' }}>
-            <div style={{ fontSize: '3rem', marginBottom: 16 }}>🤖</div>
+           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}><Bot size={44} color="#6c63ff" /></div>
             <p style={{ fontFamily: 'Space Mono', fontWeight: 700, fontSize: '1.1rem', color: 'var(--text)', marginBottom: 8 }}>No matches yet</p>
             <p style={{ fontFamily: 'Inter', color: 'var(--muted)' }}>AI matches will appear here when finders notify owners.</p>
           </div>

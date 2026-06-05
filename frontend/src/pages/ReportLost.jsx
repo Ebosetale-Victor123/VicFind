@@ -6,6 +6,7 @@ import { sendMatchEmail } from '../services/emailService'
 import { useToast } from '../components/ToastContext'
 import { useTheme } from '../components/ThemeContext'
 import LoadingSpinner from '../components/LoadingSpinner'
+import { Shield, Camera, PartyPopper } from 'lucide-react'
 
 const categories = ['Phone', 'Laptop', 'Other Electronics', 'Clothing', 'Accessories', 'Books/Notes', 'ID/Cards', 'Keys', 'Bag/Wallet', 'Other']
 const today = new Date().toISOString().split('T')[0]
@@ -71,10 +72,8 @@ export default function ReportLost() {
     setErrors({})
     setLoading(true)
     try {
-      // Save lost item first
       const result = await addLostItem(form)
 
-      // Reverse match — check existing found items against this new lost report
       try {
         const foundItems = await getFoundItems()
         const activeFound = foundItems.filter(f => f.status !== 'reunited' && f.imageUrl)
@@ -151,7 +150,7 @@ export default function ReportLost() {
                 foundItemId: topMatch.foundItemId,
                 mapLink: `${window.location.origin}/heatmap`,
               })
-              addToast(`🎉 Match found! Check your email — someone already found an item that matches yours!`, 'success')
+              addToast(`Match found! Check your email — someone already found an item that matches yours!`, 'success')
             } catch (emailErr) {
               console.error('Email error:', emailErr)
             }
@@ -183,8 +182,8 @@ export default function ReportLost() {
 
           {reverseMatches.length > 0 && (
             <div style={{ padding: '1rem', borderRadius: '0.75rem', backgroundColor: 'rgba(0,212,170,0.1)', border: '1px solid rgba(0,212,170,0.3)', marginBottom: '1rem', textAlign: 'left' }}>
-              <p style={{ fontFamily: 'Space Mono', fontWeight: 700, color: '#00d4aa', margin: '0 0 6px', fontSize: '0.85rem' }}>
-                🎉 Possible match already found!
+              <p style={{ fontFamily: 'Space Mono', fontWeight: 700, color: '#00d4aa', margin: '0 0 6px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <PartyPopper size={16} color="#00d4aa" /> Possible match already found!
               </p>
               <p style={{ fontFamily: 'Inter', fontSize: '0.8rem', color: 'var(--muted)', margin: '0 0 10px' }}>
                 Someone already reported a found item that may be yours. We've sent you a verification email — check your inbox!
@@ -287,7 +286,9 @@ export default function ReportLost() {
 
           {/* Private Identifying Details — anti-theft (REQUIRED) */}
           <div style={{ padding: '1rem', borderRadius: '0.75rem', border: `1px solid ${errors.privateDetails ? '#ff4d6d' : 'rgba(245,158,11,0.3)'}`, backgroundColor: 'rgba(245,158,11,0.06)' }}>
-            <p style={{ fontFamily: 'Space Mono', fontWeight: 700, fontSize: '0.8rem', color: '#f59e0b', margin: '0 0 6px' }}>🛡️ Private Identifying Details <span style={{ color: '#ff4d6d' }}>*</span></p>
+            <p style={{ fontFamily: 'Space Mono', fontWeight: 700, fontSize: '0.8rem', color: '#f59e0b', margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Shield size={16} color="#f59e0b" /> Private Identifying Details <span style={{ color: '#ff4d6d' }}>*</span>
+            </p>
             <p style={{ fontFamily: 'Inter', fontSize: '0.75rem', color: 'var(--muted)', margin: '0 0 14px', lineHeight: 1.5 }}>
               Required. List hidden details only the true owner would know — things NOT visible in photos. Scratches and their location, what's written or stored on it, contents inside, wear marks, stickers underneath, etc. This is kept private and only used to verify it's really yours. The more specific, the safer.
             </p>
@@ -310,8 +311,8 @@ export default function ReportLost() {
               {photoPreview && <img src={photoPreview} alt="preview" style={{ width: '100%', maxHeight: 180, objectFit: 'cover', borderRadius: '0.625rem', border: '1px solid var(--border)' }} />}
               <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
                 <input ref={photoRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={e => handlePhoto(e.target.files[0])} />
-                <button type="button" className="btn-ghost" style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }} onClick={() => photoRef.current.click()}>
-                  📷 {photoPreview ? 'Change Photo' : 'Upload Photo'}
+                <button type="button" className="btn-ghost" style={{ fontSize: '0.85rem', padding: '0.5rem 1rem', display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={() => photoRef.current.click()}>
+                  <Camera size={16} /> {photoPreview ? 'Change Photo' : 'Upload Photo'}
                 </button>
                 {photoPreview && <button type="button" onClick={() => { setPhotoPreview(null); setForm(f => ({ ...f, photo: '' })) }} style={{ background: 'none', border: 'none', color: '#ff4d6d', cursor: 'pointer', fontFamily: 'Inter', fontSize: '0.85rem' }}>Remove</button>}
               </div>
@@ -319,7 +320,7 @@ export default function ReportLost() {
           </Field>
 
           <Field label="Reward Offered" hint="Optional — motivates finders to return the item">
-            <input className="input-base" value={form.reward} onChange={set('reward')} placeholder="e.g. ₦2,000 or free jollof rice 😄" />
+            <input className="input-base" value={form.reward} onChange={set('reward')} placeholder="e.g. ₦2,000 or a treat" />
           </Field>
 
           <button type="submit" className="btn-primary" style={{ justifyContent: 'center', padding: '1rem', fontSize: '1rem', marginTop: 8 }} disabled={loading}>

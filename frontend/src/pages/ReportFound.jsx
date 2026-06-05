@@ -6,6 +6,7 @@ import { useToast } from '../components/ToastContext'
 import { useTheme } from '../components/ThemeContext'
 import MatchCard from '../components/MatchCard'
 import LoadingSpinner from '../components/LoadingSpinner'
+import { Camera, FolderOpen, Trash2, Bot, MapPin, Search } from 'lucide-react'
 
 function PhotoZone({ label, hint, preview, onFile, error, fileRef, cameraRef, required }) {
   const [dragging, setDragging] = useState(false)
@@ -37,7 +38,7 @@ function PhotoZone({ label, hint, preview, onFile, error, fileRef, cameraRef, re
           <img src={preview} alt="preview" style={{ width: '100%', objectFit: 'cover', maxHeight: 160 }} />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: 16, textAlign: 'center' }}>
-            <span style={{ fontSize: '1.8rem' }}>📷</span>
+            <Camera size={28} color="var(--muted)" />
             <p style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '0.8rem', color: 'var(--text)', margin: 0 }}>Click to upload</p>
             <p style={{ fontFamily: 'Inter', fontSize: '0.72rem', color: 'var(--muted)', margin: 0 }}>PNG, JPG, WEBP</p>
           </div>
@@ -48,16 +49,16 @@ function PhotoZone({ label, hint, preview, onFile, error, fileRef, cameraRef, re
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid var(--border)', backgroundColor: 'var(--card)', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
           <button type="button" onClick={() => { cameraRef.current.click(); setShowOptions(false) }}
             style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0.625rem 0.875rem', borderRadius: '0.5rem', border: '1px solid var(--border)', backgroundColor: 'var(--surface)', cursor: 'pointer', fontFamily: 'Inter', fontWeight: 600, fontSize: '0.85rem', color: 'var(--text)' }}>
-            <span style={{ fontSize: '1.2rem' }}>📸</span> Take Photo
+            <Camera size={18} /> Take Photo
           </button>
           <button type="button" onClick={() => { fileRef.current.click(); setShowOptions(false) }}
             style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0.625rem 0.875rem', borderRadius: '0.5rem', border: '1px solid var(--border)', backgroundColor: 'var(--surface)', cursor: 'pointer', fontFamily: 'Inter', fontWeight: 600, fontSize: '0.85rem', color: 'var(--text)' }}>
-            <span style={{ fontSize: '1.2rem' }}>🗂️</span> Choose from Files
+            <FolderOpen size={18} /> Choose from Files
           </button>
           {preview && (
             <button type="button" onClick={() => { onFile(null); setShowOptions(false) }}
               style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0.625rem 0.875rem', borderRadius: '0.5rem', border: '1px solid rgba(255,77,109,0.3)', backgroundColor: 'rgba(255,77,109,0.08)', cursor: 'pointer', fontFamily: 'Inter', fontWeight: 600, fontSize: '0.85rem', color: '#ff4d6d' }}>
-              <span style={{ fontSize: '1.2rem' }}>🗑️</span> Remove Photo
+              <Trash2 size={18} /> Remove Photo
             </button>
           )}
         </div>
@@ -179,7 +180,6 @@ export default function ReportFound() {
       const gpsData = await getGPS()
       setGps(gpsData)
 
-      // Compress images before saving to Firestore (safely under 1MB field limit)
       const frontBase64Full = await compressForStorage(frontImage)
       const backBase64Full = backImage ? await compressForStorage(backImage) : null
 
@@ -189,7 +189,6 @@ export default function ReportFound() {
       if (lostItems.length === 0) {
         addToast('No lost reports yet — your find has been logged. The owner will be notified when they report it!', 'info')
       } else {
-        // Compress further for Groq AI (smaller = faster, avoids API size limits)
         const frontBase64AI = await compressForAI(frontImage)
         aiMatches = await analyzeFoundItem(frontBase64AI, 'image/jpeg', lostItems)
       }
@@ -240,7 +239,7 @@ export default function ReportFound() {
         confidence: match.confidence,
         reasoning: match.reasoning,
         finderName,
-        finderNotes: notes,  
+        finderNotes: notes,
         lostItemId: match.lostItemId,
         foundItemId,
         mapLink: `${window.location.origin}/heatmap`,
@@ -310,12 +309,12 @@ export default function ReportFound() {
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0.75rem 1rem', borderRadius: '0.75rem', border: '1px solid var(--border)', backgroundColor: 'var(--surface)' }}>
-              <span>📍</span>
+              <MapPin size={18} color="var(--muted)" />
               <p style={{ fontFamily: 'Inter', fontSize: '0.8rem', color: 'var(--muted)', margin: 0 }}>GPS location captured automatically to pin this item on the campus heatmap.</p>
             </div>
 
-            <button className="btn-primary" style={{ justifyContent: 'center', padding: '1rem', fontSize: '1rem' }} onClick={handleSubmit} disabled={loading}>
-              {loading ? <><LoadingSpinner size="sm" /> Analyzing with AI...</> : <><span>🔍</span> Find the Owner</>}
+            <button className="btn-primary" style={{ justifyContent: 'center', padding: '1rem', fontSize: '1rem', display: 'inline-flex', alignItems: 'center', gap: 8 }} onClick={handleSubmit} disabled={loading}>
+              {loading ? <><LoadingSpinner size="sm" /> Analyzing with AI...</> : <><Search size={18} /> Find the Owner</>}
             </button>
           </div>
 
@@ -323,7 +322,9 @@ export default function ReportFound() {
           <div>
             {!matches && !loading && (
               <div className="card" style={{ minHeight: 260, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: 32, textAlign: 'center', borderStyle: 'dashed' }}>
-                <div style={{ width: 56, height: 56, borderRadius: '1rem', backgroundColor: 'rgba(108,99,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem' }}>🤖</div>
+                <div style={{ width: 56, height: 56, borderRadius: '1rem', backgroundColor: 'rgba(108,99,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Bot size={28} color="#6c63ff" />
+                </div>
                 <div>
                   <p style={{ fontFamily: 'Space Mono', fontWeight: 700, color: 'var(--text)', marginBottom: 4 }}>AI Match Results</p>
                   <p style={{ fontFamily: 'Inter', fontSize: '0.875rem', color: 'var(--muted)' }}>Upload photos and click "Find the Owner" to see matches here.</p>
@@ -360,7 +361,7 @@ export default function ReportFound() {
 
                 {gps && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid var(--border)', backgroundColor: 'var(--surface)' }}>
-                    <span>📍</span>
+                    <MapPin size={16} color="#00d4aa" />
                     <p style={{ fontFamily: 'Space Mono', fontSize: '0.72rem', color: '#00d4aa', margin: 0 }}>GPS: {gps.lat.toFixed(4)}, {gps.lng.toFixed(4)} — pinned on heatmap</p>
                   </div>
                 )}

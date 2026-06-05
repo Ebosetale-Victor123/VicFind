@@ -1,4 +1,5 @@
 import { useTheme } from './ThemeContext'
+import { CheckCircle2, AlertTriangle, Mail } from 'lucide-react'
 
 function Ring({ confidence }) {
   const r = 28, circ = 2 * Math.PI * r
@@ -44,14 +45,16 @@ export default function MatchCard({ match, onNotify, notified, notifying }) {
       {onNotify && (
         notified ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0.75rem', borderRadius: '0.75rem', backgroundColor: 'rgba(0,212,170,0.1)', border: '1px solid rgba(0,212,170,0.3)' }}>
-            <span>✅</span>
+            <CheckCircle2 size={18} color="#00d4aa" style={{ flexShrink: 0 }} />
             <p style={{ fontFamily: 'Inter', fontSize: '0.85rem', color: '#00d4aa', margin: 0, fontWeight: 600 }}>Owner notified! They'll get an email to verify.</p>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <p style={{ fontFamily: 'Inter', fontSize: '0.75rem', color: 'var(--muted)', margin: 0 }}>⚠️ Only notify if you're confident this is the right match</p>
-            <button onClick={onNotify} disabled={notifying} className="btn-primary" style={{ justifyContent: 'center', fontSize: '0.875rem', padding: '0.65rem 1rem' }}>
-              {notifying ? '⏳ Sending...' : '📧 Notify Owner to Verify'}
+            <p style={{ fontFamily: 'Inter', fontSize: '0.75rem', color: 'var(--muted)', margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <AlertTriangle size={14} color="#f59e0b" /> Only notify if you're confident this is the right match
+            </p>
+            <button onClick={onNotify} disabled={notifying} className="btn-primary" style={{ justifyContent: 'center', fontSize: '0.875rem', padding: '0.65rem 1rem', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+              {notifying ? 'Sending...' : <><Mail size={16} /> Notify Owner to Verify</>}
             </button>
           </div>
         )
