@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { getLostItems, addFoundItem, addNotification } from '../services/firestoreService'
 import { analyzeFoundItem } from '../services/geminiService'
 import { sendMatchEmail } from '../services/emailService'
@@ -7,6 +7,9 @@ import { useTheme } from '../components/ThemeContext'
 import MatchCard from '../components/MatchCard'
 import LoadingSpinner from '../components/LoadingSpinner'
 import { Camera, FolderOpen, Trash2, Bot, MapPin, Search } from 'lucide-react'
+
+const DRAFT_KEY = 'vicfind_found_draft'
+const NOTIFIED_KEY = 'vicfind_found_draft_notified'
 
 function PhotoZone({ label, hint, preview, onFile, error, fileRef, cameraRef, required }) {
   const [dragging, setDragging] = useState(false)
@@ -69,7 +72,6 @@ function PhotoZone({ label, hint, preview, onFile, error, fileRef, cameraRef, re
   )
 }
 
-// Compress for Firestore storage (max 600px, 60% quality — safely under 1MB even for iPhone photos)
 function compressForStorage(file) {
   return new Promise((resolve, reject) => {
     const img = new Image()
@@ -89,7 +91,6 @@ function compressForStorage(file) {
   })
 }
 
-// Compress for Groq AI (max 800px, 70% quality — smaller = faster + no API size errors)
 function compressForAI(file) {
   return new Promise((resolve, reject) => {
     const img = new Image()
@@ -110,15 +111,19 @@ function compressForAI(file) {
 }
 
 export default function ReportFound() {
+  const cached = (() => {
+    try { return JSON.parse(localStorage.getItem(DRAFT_KEY)) || {} } catch { return {} }
+  })()
+
   const [frontImage, setFrontImage] = useState(null)
   const [backImage, setBackImage] = useState(null)
   const [frontPreview, setFrontPreview] = useState(null)
   const [backPreview, setBackPreview] = useState(null)
-  const [finderName, setFinderName] = useState('')
-  const [finderPhone, setFinderPhone] = useState('')
-  const [finderEmail, setFinderEmail] = useState('')
-  const [location, setLocation] = useState('')
-  const [notes, setNotes] = useState('')
+  const [finderName, setFinderName] = useState(cached.finderName || '')
+  const [finderPhone, setFinderPhone] = useState(cached.finderPhone || '')
+  const [finderEmail, setFinderEmail] = useState(cached.finderEmail || '')
+  const [location, setLocation] = useState(cached.location || '')
+  const [notes, setNotes] = useState(cached.notes || '')
   const [loading, setLoading] = useState(false)
   const [matches, setMatches] = useState(null)
   const [errors, setErrors] = useState({})
@@ -127,12 +132,41 @@ export default function ReportFound() {
   const [finderReunionId, setFinderReunionId] = useState(null)
   const [notifiedMatches, setNotifiedMatches] = useState({})
   const [notifying, setNotifying] = useState({})
+  const draftToastShown = useRef(false)
   const frontRef = useRef()
   const backRef = useRef()
   const frontCameraRef = useRef()
   const backCameraRef = useRef()
   const { addToast } = useToast()
   const { dark } = useTheme()
+
+  // Save text fields to localStorage on change
+  useEffect(() => {
+    const draft = { finderName, finderPhone, finderEmail, location, notes }
+    try {
+      if (Object.values(draft).some(v => v)) localStorage.setItem(DRAFT_KEY, JSON.stringify(draft))
+    } catch {}
+  }, [finderName, finderPhone, finderEmail, location, notes])
+
+  // Show "restored" toast at most ONCE per browser session (survives navigation + StrictMode)
+  useEffect(() => {
+    if (draftToastShown.current) return
+    draftToastShown.current = true
+    try {
+      if (sessionStorage.getItem(NOTIFIED_KEY)) return
+      if (cached.finderName || cached.finderPhone || cached.finderEmail || cached.location || cached.notes) {
+        addToast('Restored your unsaved details.', 'info')
+        sessionStorage.setItem(NOTIFIED_KEY, '1')
+      }
+    } catch {}
+  }, [])
+
+  function clearDraft() {
+    try {
+      localStorage.removeItem(DRAFT_KEY)
+      sessionStorage.removeItem(NOTIFIED_KEY)
+    } catch {}
+  }
 
   function handleFile(setter, previewSetter) {
     return (file) => {
@@ -205,6 +239,7 @@ export default function ReportFound() {
       setFoundItemId(result.id)
       setFinderReunionId(result.finderReunionId)
       setMatches(aiMatches)
+      clearDraft()
 
       if (aiMatches.length > 0) {
         addToast(`${aiMatches.length} possible match${aiMatches.length > 1 ? 'es' : ''} found! Review and notify the owner.`, 'success')
@@ -213,7 +248,7 @@ export default function ReportFound() {
       }
     } catch (err) {
       console.error('Found item error:', err)
-      addToast('Something went wrong. Please try again.', 'error')
+      addToast('Something went wrong. Please try again. Your details are saved.', 'error')
     } finally {
       setLoading(false)
     }

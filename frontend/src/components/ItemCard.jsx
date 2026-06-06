@@ -1,4 +1,5 @@
 import { useTheme } from './ThemeContext'
+import { Palette, MapPin, Calendar, Wallet } from 'lucide-react'
 
 const statusColor = {
   active: { bg: 'rgba(255,77,109,0.1)', color: '#ff4d6d', border: 'rgba(255,77,109,0.3)' },
@@ -33,17 +34,17 @@ export default function ItemCard({ item }) {
         <p style={{ fontFamily: 'Space Mono', fontSize: '0.7rem', color: '#6c63ff', margin: 0 }}>IMEI/Serial: {item.imei}</p>
       )}
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, paddingTop: 4, borderTop: '1px solid var(--border)' }}>
-        <span style={{ fontFamily: 'Inter', fontSize: '0.75rem', color: 'var(--muted)' }}>🎨 {item.color}</span>
-        <span style={{ fontFamily: 'Inter', fontSize: '0.75rem', color: 'var(--muted)' }}>📍 {item.location}</span>
-        <span style={{ fontFamily: 'Inter', fontSize: '0.75rem', color: 'var(--muted)' }}>📅 {item.dateLost}</span>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
+        <span style={{ fontFamily: 'Inter', fontSize: '0.75rem', color: 'var(--muted)', display: 'inline-flex', alignItems: 'center', gap: 5 }}><Palette size={13} /> {item.color}</span>
+        <span style={{ fontFamily: 'Inter', fontSize: '0.75rem', color: 'var(--muted)', display: 'inline-flex', alignItems: 'center', gap: 5 }}><MapPin size={13} /> {item.location}</span>
+        <span style={{ fontFamily: 'Inter', fontSize: '0.75rem', color: 'var(--muted)', display: 'inline-flex', alignItems: 'center', gap: 5 }}><Calendar size={13} /> {item.dateLost}</span>
       </div>
 
       <p style={{ fontFamily: 'Inter', fontSize: '0.8rem', color: 'var(--muted)', margin: 0 }}>By <strong style={{ color: 'var(--text)' }}>{item.name}</strong></p>
 
       {item.reward && (
         <div style={{ padding: '6px 10px', borderRadius: '0.5rem', backgroundColor: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.25)' }}>
-          <p style={{ fontFamily: 'Inter', fontSize: '0.75rem', color: '#f59e0b', margin: 0, fontWeight: 600 }}>💰 Reward: {item.reward}</p>
+          <p style={{ fontFamily: 'Inter', fontSize: '0.75rem', color: '#f59e0b', margin: 0, fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 5 }}><Wallet size={13} /> Reward: {item.reward}</p>
         </div>
       )}
     </div>

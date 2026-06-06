@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { addLostItem, getFoundItems, addNotification } from '../services/firestoreService'
 import { analyzeFoundItem } from '../services/geminiService'
@@ -11,6 +11,9 @@ import { Shield, Camera, PartyPopper } from 'lucide-react'
 const categories = ['Phone', 'Laptop', 'Other Electronics', 'Clothing', 'Accessories', 'Books/Notes', 'ID/Cards', 'Keys', 'Bag/Wallet', 'Other']
 const today = new Date().toISOString().split('T')[0]
 const init = { name: '', email: '', phone: '', itemName: '', category: '', color: '', description: '', location: '', dateLost: '', reward: '', imei: '', photo: '', privateDetails: '' }
+
+const DRAFT_KEY = 'vicfind_lost_draft'
+const NOTIFIED_KEY = 'vicfind_lost_draft_notified'
 
 function Field({ label, required, error, hint, children }) {
   return (
@@ -26,15 +29,48 @@ function Field({ label, required, error, hint, children }) {
 }
 
 export default function ReportLost() {
-  const [form, setForm] = useState(init)
+  const [form, setForm] = useState(() => {
+    try {
+      const saved = localStorage.getItem(DRAFT_KEY)
+      return saved ? { ...init, ...JSON.parse(saved) } : init
+    } catch { return init }
+  })
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(null)
-  const [photoPreview, setPhotoPreview] = useState(null)
+  const [photoPreview, setPhotoPreview] = useState(() => {
+    try {
+      const saved = localStorage.getItem(DRAFT_KEY)
+      return saved ? (JSON.parse(saved).photo || null) : null
+    } catch { return null }
+  })
   const [reverseMatches, setReverseMatches] = useState([])
+  const draftToastShown = useRef(false)
   const photoRef = useRef()
   const { addToast } = useToast()
   const { dark } = useTheme()
+
+  // Save draft to localStorage whenever form changes (only if it has real content)
+  useEffect(() => {
+    try {
+      const hasContent = Object.entries(form).some(([k, v]) => v && v !== init[k])
+      if (hasContent) localStorage.setItem(DRAFT_KEY, JSON.stringify(form))
+    } catch {}
+  }, [form])
+
+  // Show "restored" toast at most ONCE per browser session (survives navigation + StrictMode)
+  useEffect(() => {
+    if (draftToastShown.current) return
+    draftToastShown.current = true
+    try {
+      if (sessionStorage.getItem(NOTIFIED_KEY)) return  // already shown this session
+      const saved = localStorage.getItem(DRAFT_KEY)
+      if (saved && Object.values(JSON.parse(saved)).some(v => v)) {
+        addToast('Restored your unsaved report draft.', 'info')
+        sessionStorage.setItem(NOTIFIED_KEY, '1')
+      }
+    } catch {}
+  }, [])
 
   const set = key => e => setForm(f => ({ ...f, [key]: e.target.value }))
 
@@ -43,6 +79,13 @@ export default function ReportLost() {
     const reader = new FileReader()
     reader.onload = e => { setPhotoPreview(e.target.result); setForm(f => ({ ...f, photo: e.target.result })) }
     reader.readAsDataURL(file)
+  }
+
+  function clearDraft() {
+    try {
+      localStorage.removeItem(DRAFT_KEY)
+      sessionStorage.removeItem(NOTIFIED_KEY)
+    } catch {}
   }
 
   function validate() {
@@ -160,9 +203,10 @@ export default function ReportLost() {
         console.error('Reverse match failed:', reverseErr)
       }
 
+      clearDraft()
       setSubmitted(result)
     } catch (err) {
-      addToast('Something went wrong. Try again.', 'error')
+      addToast('Something went wrong. Try again. Your details are saved.', 'error')
     } finally {
       setLoading(false)
     }

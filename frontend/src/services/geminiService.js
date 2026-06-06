@@ -1,10 +1,27 @@
-export async function analyzeFoundItem(imageBase64, mimeType, lostItems) {
-  try {
-    const lostItemsText = lostItems.map(item =>
-      `ID: ${item.id} | Item: ${item.itemName} | Color: ${item.color} | Category: ${item.category} | Description: ${item.description} | Lost by: ${item.name} | Email: ${item.email} | Phone: ${item.phone || 'N/A'}${item.imei ? ` | IMEI: ${item.imei}` : ''}`
-    ).join('\n')
+// Helper: fetch with a timeout so a stalled request on slow networks doesn't hang forever
+function fetchWithTimeout(url, options, timeoutMs = 30000) {
+  return new Promise((resolve, reject) => {
+    const controller = new AbortController()
+    const timer = setTimeout(() => {
+      controller.abort()
+      reject(new Error('Request timed out'))
+    }, timeoutMs)
 
-    const prompt = `You are an AI assistant for VicFind, a campus lost and found system at Caleb University, Ota. Analyze the provided image of a found item and compare it against the lost item descriptions below.
+    fetch(url, { ...options, signal: controller.signal })
+      .then(res => { clearTimeout(timer); resolve(res) })
+      .catch(err => { clearTimeout(timer); reject(err) })
+  })
+}
+
+// Helper: wait
+const wait = ms => new Promise(r => setTimeout(r, ms))
+
+export async function analyzeFoundItem(imageBase64, mimeType, lostItems) {
+  const lostItemsText = lostItems.map(item =>
+    `ID: ${item.id} | Item: ${item.itemName} | Color: ${item.color} | Category: ${item.category} | Description: ${item.description} | Lost by: ${item.name} | Email: ${item.email} | Phone: ${item.phone || 'N/A'}${item.imei ? ` | IMEI: ${item.imei}` : ''}`
+  ).join('\n')
+
+  const prompt = `You are an AI assistant for VicFind, a campus lost and found system at Caleb University, Ota. Analyze the provided image of a found item and compare it against the lost item descriptions below.
 
 CRITICAL RULES:
 - You MUST first correctly identify what the item in the photo actually is (phone, power bank, mouse, calculator, bag, keys, earbuds, charger, etc.)
@@ -28,32 +45,81 @@ Rules:
 - confidence is a number 0-100
 - Be specific about visual features in reasoning`
 
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'meta-llama/llama-4-scout-17b-16e-instruct',
-        messages: [{
-          role: 'user',
-          content: [
-            { type: 'image_url', image_url: { url: `data:${mimeType};base64,${imageBase64}` } },
-            { type: 'text', text: prompt },
-          ],
-        }],
-        temperature: 0.1,
-        max_tokens: 1024,
-      }),
-    })
+  const body = JSON.stringify({
+    model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+    messages: [{
+      role: 'user',
+      content: [
+        { type: 'image_url', image_url: { url: `data:${mimeType};base64,${imageBase64}` } },
+        { type: 'text', text: prompt },
+      ],
+    }],
+    temperature: 0.1,
+    max_tokens: 1024,
+  })
 
-    const data = await response.json()
-    const text = data.choices[0].message.content.replace(/```json|```/g, '').trim()
-    const matches = JSON.parse(text)
-    return Array.isArray(matches) ? matches : []
-  } catch (err) {
-    console.error('Groq error:', err)
-    return []
+  // Retry up to 3 times with increasing delays — handles dropped requests on weak networks
+  const MAX_RETRIES = 3
+  let lastError = null
+
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const response = await fetchWithTimeout(
+        'https://api.groq.com/openai/v1/chat/completions',
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body,
+        },
+        35000  // 35s timeout — generous for slow connections
+      )
+
+      if (!response.ok) {
+        // 429 (rate limit) or 5xx — worth retrying
+        if (response.status === 429 || response.status >= 500) {
+          lastError = new Error(`Groq returned ${response.status}`)
+          console.warn(`Groq attempt ${attempt} failed with ${response.status}, retrying...`)
+          await wait(attempt * 1500)  // 1.5s, 3s, 4.5s
+          continue
+        }
+        // Other errors (400 etc.) — don't retry, no point
+        console.error(`Groq returned ${response.status}`)
+        return []
+      }
+
+      const data = await response.json()
+      const raw = data?.choices?.[0]?.message?.content
+      if (!raw) return []
+
+      const text = raw.replace(/```json|```/g, '').trim()
+      try {
+        const matches = JSON.parse(text)
+        return Array.isArray(matches) ? matches : []
+      } catch (parseErr) {
+        // AI returned non-JSON (rare) — try to salvage a JSON array if present
+        const arrayMatch = text.match(/\[[\s\S]*\]/)
+        if (arrayMatch) {
+          try {
+            const salvaged = JSON.parse(arrayMatch[0])
+            return Array.isArray(salvaged) ? salvaged : []
+          } catch { /* fall through */ }
+        }
+        console.error('Groq returned unparseable response:', text.slice(0, 200))
+        return []
+      }
+    } catch (err) {
+      lastError = err
+      console.warn(`Groq attempt ${attempt} failed:`, err.message)
+      if (attempt < MAX_RETRIES) {
+        await wait(attempt * 1500)  // back off before retrying
+      }
+    }
   }
+
+  // All retries exhausted — log and return empty so the app still saves the item
+  console.error('Groq error after all retries:', lastError?.message)
+  return []
 }

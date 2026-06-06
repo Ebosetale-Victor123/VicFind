@@ -48,8 +48,8 @@ export default function Navbar() {
             <button onClick={toggle} style={{
               marginLeft: 8, width: 36, height: 36, borderRadius: '50%',
               border: '1.5px solid var(--border)', background: 'var(--surface)',
-              cursor: 'pointer', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              transition: 'all 0.2s',
+              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              transition: 'all 0.2s', color: 'var(--text)',
             }}>
               {dark ? <Sun size={16} /> : <Moon size={16} />}
             </button>
@@ -60,9 +60,10 @@ export default function Navbar() {
             <button onClick={toggle} style={{
               width: 36, height: 36, borderRadius: '50%',
               border: '1.5px solid var(--border)', background: 'var(--surface)',
-              cursor: 'pointer', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'var(--text)',
             }}>
-              {dark ? '☀️' : '🌙'}
+              {dark ? <Sun size={16} /> : <Moon size={16} />}
             </button>
             <button onClick={() => setMenuOpen(o => !o)} style={{
               width: 36, height: 36, borderRadius: '0.5rem',
