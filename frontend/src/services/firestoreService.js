@@ -12,7 +12,6 @@ function generateReunionId(prefix) {
 
 const wait = ms => new Promise(r => setTimeout(r, ms))
 
-// Retry any Firestore operation up to 3 times with backoff — survives flaky/KB-speed networks
 async function withRetry(fn, label = 'firestore op', maxRetries = 3) {
   let lastError = null
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -21,14 +20,12 @@ async function withRetry(fn, label = 'firestore op', maxRetries = 3) {
     } catch (err) {
       lastError = err
       console.warn(`${label} attempt ${attempt} failed:`, err.message)
-      if (attempt < maxRetries) await wait(attempt * 1500) // 1.5s, 3s
+      if (attempt < maxRetries) await wait(attempt * 1500)
     }
   }
   throw lastError
 }
 
-// Lightweight cache layer: keeps last good fetch in memory + localStorage.
-// On a failed/slow fetch, we can fall back to the cached copy so pages still render.
 const memCache = {}
 
 function readCache(key) {
@@ -155,11 +152,19 @@ export async function getFoundItemById(id) {
 }
 
 export async function getNotifications() {
-  return withRetry(async () => {
-    const q = query(collection(db, 'notifications'), orderBy('createdAt', 'desc'))
-    const snap = await getDocs(q)
-    return snap.docs.map(d => ({ id: d.id, ...d.data() }))
-  }, 'getNotifications')
+  try {
+    const items = await withRetry(async () => {
+      const q = query(collection(db, 'notifications'), orderBy('createdAt', 'desc'))
+      const snap = await getDocs(q)
+      return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+    }, 'getNotifications')
+    writeCache('notifications', items)
+    return items
+  } catch (err) {
+    const cached = readCache('notifications')
+    if (cached) { console.warn('getNotifications: using cached data'); return cached }
+    throw err
+  }
 }
 
 export async function getStats() {
@@ -213,10 +218,10 @@ export async function clearAllData() {
     ...foundSnap.docs.map(d => deleteDoc(doc(db, 'foundItems', d.id))),
     ...notifSnap.docs.map(d => deleteDoc(doc(db, 'notifications', d.id))),
   ])
-  // clear caches too
   try {
     localStorage.removeItem('vicfind_cache_lostItems')
     localStorage.removeItem('vicfind_cache_foundItems')
+    localStorage.removeItem('vicfind_cache_notifications')
     localStorage.removeItem('vicfind_cache_stats')
   } catch {}
 }

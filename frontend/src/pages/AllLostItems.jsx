@@ -1,14 +1,28 @@
-import { useState } from 'react'
-import { useItems } from '../hooks/useItems'
+import { useState, useEffect } from 'react'
+import { getLostItems } from '../services/firestoreService'
 import ItemCard from '../components/ItemCard'
 import LoadingSpinner from '../components/LoadingSpinner'
 
 const categories = ['All', 'Phone', 'Laptop', 'Other Electronics', 'Clothing', 'Accessories', 'Books/Notes', 'ID/Cards', 'Keys', 'Bag/Wallet', 'Other']
 
 export default function AllLostItems() {
-  const { items, loading } = useItems()
+  const [items, setItems] = useState(() => {
+    // Show cached items instantly while fresh data loads
+    try {
+      const cached = localStorage.getItem('vicfind_cache_lostItems')
+      return cached ? JSON.parse(cached).filter(i => i.status === 'active') : []
+    } catch { return [] }
+  })
+  const [loading, setLoading] = useState(items.length === 0) // only show spinner if no cache
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('All')
+
+  useEffect(() => {
+    getLostItems()
+      .then(all => setItems(all.filter(i => i.status === 'active')))
+      .catch(() => {}) // cache fallback already handled in firestoreService
+      .finally(() => setLoading(false))
+  }, [])
 
   const filtered = items.filter(item => {
     const s = search.toLowerCase()
@@ -53,7 +67,7 @@ export default function AllLostItems() {
               {search || category !== 'All' ? 'No items match your search' : 'No active lost items'}
             </p>
             <p style={{ fontFamily: 'Inter', color: 'var(--muted)' }}>
-              {search || category !== 'All' ? 'Try a different search term.' : 'All items have been reunited — amazing! 🎉'}
+              {search || category !== 'All' ? 'Try a different search term.' : 'All items have been reunited — amazing!'}
             </p>
           </div>
         ) : (

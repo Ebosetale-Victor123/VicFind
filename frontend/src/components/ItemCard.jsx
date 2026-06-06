@@ -17,7 +17,7 @@ export default function ItemCard({ item }) {
       onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)' }}>
 
       {item.photo && (
-        <img src={item.photo} alt={item.itemName} style={{ width: '100%', height: 160, objectFit: 'cover', borderRadius: '0.625rem', border: '1px solid var(--border)' }} />
+<img src={item.photo} alt={item.itemName} loading="lazy" style={{ width: '100%', height: 160, objectFit: 'cover', borderRadius: '0.625rem', border: '1px solid var(--border)' }} />
       )}
 
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>

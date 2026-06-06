@@ -4,11 +4,19 @@ import LoadingSpinner from '../components/LoadingSpinner'
 import { Bot } from 'lucide-react'
 
 export default function Matches() {
-  const [notifications, setNotifications] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [notifications, setNotifications] = useState(() => {
+    try {
+      const cached = localStorage.getItem('vicfind_cache_notifications')
+      return cached ? JSON.parse(cached) : []
+    } catch { return [] }
+  })
+  const [loading, setLoading] = useState(notifications.length === 0)
 
   useEffect(() => {
-    getNotifications().then(setNotifications).finally(() => setLoading(false))
+    getNotifications()
+      .then(setNotifications)
+      .catch(() => {})
+      .finally(() => setLoading(false))
   }, [])
 
   return (
@@ -23,7 +31,7 @@ export default function Matches() {
           <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 80 }}><LoadingSpinner size="lg" /></div>
         ) : notifications.length === 0 ? (
           <div className="card" style={{ padding: '4rem', textAlign: 'center' }}>
-           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}><Bot size={44} color="#6c63ff" /></div>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}><Bot size={44} color="#6c63ff" /></div>
             <p style={{ fontFamily: 'Space Mono', fontWeight: 700, fontSize: '1.1rem', color: 'var(--text)', marginBottom: 8 }}>No matches yet</p>
             <p style={{ fontFamily: 'Inter', color: 'var(--muted)' }}>AI matches will appear here when finders notify owners.</p>
           </div>

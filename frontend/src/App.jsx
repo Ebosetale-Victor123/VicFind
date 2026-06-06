@@ -1,17 +1,29 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { lazy, Suspense } from 'react'
 import { ToastProvider } from './components/ToastContext'
 import { ThemeProvider } from './components/ThemeContext'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
-import Home from './pages/Home'
-import ReportLost from './pages/ReportLost'
-import ReportFound from './pages/ReportFound'
-import Matches from './pages/Matches'
-import AllLostItems from './pages/AllLostItems'
-import Heatmap from './pages/Heatmap'
-import Admin from './pages/Admin'
-import Verify from './pages/Verify'
-import NotFound from './pages/NotFound'
+import LoadingSpinner from './components/LoadingSpinner'
+
+// Lazy load every page — only downloads when visited
+const Home = lazy(() => import('./pages/Home'))
+const ReportLost = lazy(() => import('./pages/ReportLost'))
+const ReportFound = lazy(() => import('./pages/ReportFound'))
+const Matches = lazy(() => import('./pages/Matches'))
+const AllLostItems = lazy(() => import('./pages/AllLostItems'))
+const Heatmap = lazy(() => import('./pages/Heatmap'))
+const Admin = lazy(() => import('./pages/Admin'))
+const Verify = lazy(() => import('./pages/Verify'))
+const NotFound = lazy(() => import('./pages/NotFound'))
+
+function PageLoader() {
+  return (
+    <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <LoadingSpinner size="lg" />
+    </div>
+  )
+}
 
 export default function App() {
   return (
@@ -21,17 +33,19 @@ export default function App() {
           <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
             <Navbar />
             <main style={{ flex: 1 }}>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/report-lost" element={<ReportLost />} />
-                <Route path="/report-found" element={<ReportFound />} />
-                <Route path="/matches" element={<Matches />} />
-                <Route path="/items" element={<AllLostItems />} />
-                <Route path="/heatmap" element={<Heatmap />} />
-                <Route path="/admin" element={<Admin />} />
-                <Route path="/verify/:lostItemId/:foundItemId" element={<Verify />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+              <Suspense fallback={<PageLoader />}>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/report-lost" element={<ReportLost />} />
+                  <Route path="/report-found" element={<ReportFound />} />
+                  <Route path="/matches" element={<Matches />} />
+                  <Route path="/items" element={<AllLostItems />} />
+                  <Route path="/heatmap" element={<Heatmap />} />
+                  <Route path="/admin" element={<Admin />} />
+                  <Route path="/verify/:lostItemId/:foundItemId" element={<Verify />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
             </main>
             <Footer />
           </div>
