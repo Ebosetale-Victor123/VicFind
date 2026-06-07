@@ -32,7 +32,7 @@ function ToastContainer({ toasts }) {
           fontSize: '0.875rem',
           fontWeight: 500,
           maxWidth: 320,
-          boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+          boxShadow: dark ? '0 8px 32px rgba(0,0,0,0.3)' : '0 8px 28px rgba(108,99,255,0.18)',
           border: '1px solid',
           backgroundColor: dark ? '#13131f' : '#ffffff',
           borderColor: toast.type === 'success' ? 'rgba(0,212,170,0.4)' : toast.type === 'error' ? 'rgba(255,77,109,0.4)' : 'rgba(108,99,255,0.3)',

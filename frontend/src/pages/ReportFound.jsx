@@ -49,7 +49,7 @@ function PhotoZone({ label, hint, preview, onFile, error, fileRef, cameraRef, re
       </div>
 
       {showOptions && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid var(--border)', backgroundColor: 'var(--card)', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid var(--border)', backgroundColor: 'var(--card)', boxShadow: 'var(--shadow)' }}>
           <button type="button" onClick={() => { cameraRef.current.click(); setShowOptions(false) }}
             style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0.625rem 0.875rem', borderRadius: '0.5rem', border: '1px solid var(--border)', backgroundColor: 'var(--surface)', cursor: 'pointer', fontFamily: 'Inter', fontWeight: 600, fontSize: '0.85rem', color: 'var(--text)' }}>
             <Camera size={18} /> Take Photo

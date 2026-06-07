@@ -84,7 +84,7 @@ export default function Navbar() {
           position: 'fixed', top: 64, left: 0, right: 0, zIndex: 999,
           backgroundColor: 'var(--card)', borderBottom: '1px solid var(--border)',
           padding: '1rem 1.5rem', display: 'flex', flexDirection: 'column', gap: 4,
-          boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+          boxShadow: dark ? '0 8px 24px rgba(0,0,0,0.15)' : '0 8px 28px rgba(108,99,255,0.16)',
         }}>
           {links.map(l => (
             <Link key={l.to} to={l.to} onClick={() => setMenuOpen(false)} style={{

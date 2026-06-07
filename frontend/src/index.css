@@ -23,19 +23,19 @@
 
 /* ── LIGHT MODE ── */
 .light {
-  --bg: #f4f3ff;
-  --surface: #eeecff;
+  --bg: #f5f4ff;
+  --surface: #ece8ff;
   --card: #ffffff;
-  --border: #e2deff;
-  --text: #1a1733;
-  --muted: #7c75a8;
+  --border: #cec8f4;
+  --text: #150e38;
+  --muted: #56507a;
   --accent: #6c63ff;
   --teal: #00b896;
   --red: #e8365d;
   --amber: #d97706;
-  --input-bg: #ffffff;
-  --shadow: 0 2px 16px rgba(108,99,255,0.08);
-  --shadow-card: 0 4px 32px rgba(108,99,255,0.12);
+  --input-bg: #faf9ff;
+  --shadow: 0 2px 16px rgba(108,99,255,0.1);
+  --shadow-card: 0 4px 32px rgba(108,99,255,0.16);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -57,7 +57,8 @@ body {
 }
 
 .light .card {
-  box-shadow: 0 2px 20px rgba(108,99,255,0.08), 0 0 0 1px rgba(108,99,255,0.06);
+  border-color: var(--border);
+  box-shadow: 0 2px 20px rgba(108,99,255,0.1), 0 0 0 1px rgba(108,99,255,0.05);
 }
 
 .card:hover {
@@ -84,8 +85,9 @@ body {
   box-shadow: 0 0 0 3px rgba(108,99,255,0.15);
 }
 
-.light .input-base { box-shadow: 0 1px 4px rgba(108,99,255,0.06); }
-.light .input-base:focus { box-shadow: 0 0 0 3px rgba(108,99,255,0.12), 0 1px 4px rgba(108,99,255,0.08); }
+.light .input-base { border-color: var(--border); box-shadow: 0 1px 4px rgba(108,99,255,0.05); }
+.light .input-base:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(108,99,255,0.14), 0 1px 4px rgba(108,99,255,0.08); }
+.light .input-base::placeholder { color: #9089b3; }
 
 .btn-primary {
   display: inline-flex;
@@ -126,7 +128,11 @@ body {
 }
 
 .btn-ghost:hover { border-color: var(--accent); color: var(--accent); background: rgba(108,99,255,0.06); }
-.light .btn-ghost { box-shadow: 0 1px 4px rgba(108,99,255,0.06); }
+.light .btn-ghost { border-color: var(--border); }
+.light .btn-ghost:hover { background: rgba(108,99,255,0.07); }
+
+/* Light-mode-only: keep the teal "found" identity on hover instead of the generic purple hover (dark mode untouched) */
+.light .btn-ghost.hero-found-btn:hover { border-color: #00b896; color: #00755f; background: rgba(0,212,170,0.12); }
 
 .navbar {
   position: fixed;
@@ -138,7 +144,7 @@ body {
 }
 
 :root .navbar { background: rgba(8,8,16,0.85); }
-.light .navbar { background: rgba(244,243,255,0.92); }
+.light .navbar { background: rgba(255,255,255,0.85); border-bottom-color: var(--border); box-shadow: 0 1px 0 rgba(108,99,255,0.06); }
 
 .text-muted { color: var(--muted); }
 .text-accent { color: var(--accent); }
@@ -169,7 +175,11 @@ body {
 .reunion-owner { background: rgba(108,99,255,0.15); color: var(--accent); border: 1px solid rgba(108,99,255,0.3); }
 .reunion-finder { background: rgba(0,212,170,0.12); color: var(--teal); border: 1px solid rgba(0,212,170,0.3); }
 
-.light .stat-card { background: linear-gradient(135deg, #ffffff 0%, #f8f7ff 100%); box-shadow: 0 4px 24px rgba(108,99,255,0.1), 0 1px 0 rgba(108,99,255,0.08); }
+.light .stat-card { background: linear-gradient(135deg, #ffffff 0%, #f6f4ff 100%); box-shadow: 0 4px 24px rgba(108,99,255,0.12), 0 1px 0 rgba(108,99,255,0.1); }
 
 .hero-gradient { background: var(--bg); }
-.light .hero-gradient { background: linear-gradient(135deg, #f4f3ff 0%, #ebe8ff 50%, #f0fffe 100%); }
+.light .hero-gradient { background: linear-gradient(135deg, #eee9ff 0%, #e2d9ff 45%, #dcf6f0 100%); }
+
+.light ::-webkit-scrollbar-thumb { background: #cdc6f2; }
+.light ::-webkit-scrollbar-thumb:hover { background: #b3a9e8; }
+.light ::-webkit-scrollbar-track { background: var(--surface); }

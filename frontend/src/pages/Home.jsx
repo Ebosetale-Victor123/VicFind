@@ -60,10 +60,10 @@ export default function Home() {
             <Link to="/report-lost" className="btn-primary" style={{ textDecoration: 'none', fontSize: '0.95rem', padding: '0.875rem 1.75rem', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
               <Circle size={16} fill="#ff4d6d" strokeWidth={0} /> Report Lost Item
             </Link>
-            <Link to="/report-found" className="btn-ghost" style={{ textDecoration: 'none', fontSize: '0.95rem', padding: '0.875rem 1.75rem', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+            <Link to="/report-found" className="btn-ghost hero-found-btn" style={{ textDecoration: 'none', fontSize: '0.95rem', padding: '0.875rem 1.75rem', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
               <Circle size={16} fill="#00d4aa" strokeWidth={0} /> Report Found Item
             </Link>
-            <Link to="/heatmap" className="btn-ghost" style={{ textDecoration: 'none', fontSize: '0.95rem', padding: '0.875rem 1.75rem', borderColor: '#00d4aa', color: '#00d4aa', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+            <Link to="/heatmap" className="btn-ghost" style={{ textDecoration: 'none', fontSize: '0.95rem', padding: '0.875rem 1.75rem', borderColor: dark ? '#00d4aa' : '#00937a', color: dark ? '#00d4aa' : '#00937a', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
               <Map size={16} /> Campus Heatmap
             </Link>
           </div>

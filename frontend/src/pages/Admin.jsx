@@ -1,9 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth'
+import { auth } from '../firebase/config'
 import { getLostItems, getFoundItems, getNotifications, markItemClaimed, markItemActive, deleteLostItem, deleteFoundItem, deleteNotification, clearAllData } from '../services/firestoreService'
 import LoadingSpinner from '../components/LoadingSpinner'
-import { Lock, RefreshCw, Trash2, Circle, Bot, PartyPopper, CheckCircle2, RotateCcw, User, Mail, MapPin, Calendar, Phone } from 'lucide-react'
-
-const ADMIN_PASSWORD = 'iamawesome'
+import { Lock, RefreshCw, Trash2, Circle, Bot, PartyPopper, CheckCircle2, RotateCcw, User, Mail, MapPin, Calendar, Phone, LogOut } from 'lucide-react'
 
 function StatCard({ value, label, color, Icon, fill }) {
   return (
@@ -19,8 +19,11 @@ function StatCard({ value, label, color, Icon, fill }) {
 
 export default function Admin() {
   const [authed, setAuthed] = useState(false)
+  const [authChecking, setAuthChecking] = useState(true)
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [wrongPass, setWrongPass] = useState(false)
+  const [loginError, setLoginError] = useState('')
+  const [loginLoading, setLoginLoading] = useState(false)
   const [tab, setTab] = useState('lost')
   const [lostItems, setLostItems] = useState([])
   const [foundItems, setFoundItems] = useState([])
@@ -29,9 +32,36 @@ export default function Admin() {
   const [clearing, setClearing] = useState(false)
   const [confirmClear, setConfirmClear] = useState(false)
 
-  function login() {
-    if (password === ADMIN_PASSWORD) { setAuthed(true); loadData() }
-    else { setWrongPass(true); setTimeout(() => setWrongPass(false), 2000) }
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, user => {
+      if (user) { setAuthed(true); loadData() }
+      else setAuthed(false)
+      setAuthChecking(false)
+    })
+    return unsub
+  }, [])
+
+  async function login() {
+    if (!email.trim() || !password) { setLoginError('Enter your email and password.'); return }
+    setLoginLoading(true)
+    setLoginError('')
+    try {
+      await signInWithEmailAndPassword(auth, email.trim(), password)
+      // onAuthStateChanged above will set authed + load data
+    } catch (err) {
+      const msg = err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found'
+        ? 'Wrong email or password.'
+        : 'Login failed. Check your connection and try again.'
+      setLoginError(msg)
+    } finally {
+      setLoginLoading(false)
+    }
+  }
+
+  async function handleSignOut() {
+    await signOut(auth)
+    setAuthed(false)
+    setLostItems([]); setFoundItems([]); setNotifications([])
   }
 
   async function loadData() {
@@ -61,6 +91,14 @@ export default function Admin() {
     color: status === 'active' ? '#00d4aa' : status === 'reunited' ? '#6c63ff' : '#f59e0b',
   })
 
+  if (authChecking) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <LoadingSpinner size="lg" />
+      </div>
+    )
+  }
+
   if (!authed) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, backgroundColor: 'var(--bg)' }}>
@@ -71,9 +109,12 @@ export default function Admin() {
             <p style={{ fontFamily: 'Inter', color: 'var(--muted)', fontSize: '0.85rem', marginTop: 6 }}>VicFind · Caleb University</p>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <input className="input-base" type="password" placeholder="Enter admin password" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && login()} style={{ borderColor: wrongPass ? '#ff4d6d' : undefined }} />
-            {wrongPass && <p style={{ fontFamily: 'Inter', fontSize: '0.75rem', color: '#ff4d6d', margin: 0 }}>Wrong password. Try again.</p>}
-            <button className="btn-primary" style={{ justifyContent: 'center', padding: '0.875rem' }} onClick={login}>Enter Dashboard</button>
+            <input className="input-base" type="email" placeholder="Admin email" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === 'Enter' && login()} style={{ borderColor: loginError ? '#ff4d6d' : undefined }} />
+            <input className="input-base" type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && login()} style={{ borderColor: loginError ? '#ff4d6d' : undefined }} />
+            {loginError && <p style={{ fontFamily: 'Inter', fontSize: '0.75rem', color: '#ff4d6d', margin: 0 }}>{loginError}</p>}
+            <button className="btn-primary" style={{ justifyContent: 'center', padding: '0.875rem', display: 'inline-flex', alignItems: 'center', gap: 8 }} onClick={login} disabled={loginLoading}>
+              {loginLoading ? <><LoadingSpinner size="sm" /> Signing in...</> : 'Enter Dashboard'}
+            </button>
           </div>
         </div>
       </div>
@@ -106,6 +147,7 @@ export default function Admin() {
           </div>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             <button className="btn-ghost" style={{ fontSize: '0.875rem', padding: '0.5rem 1rem', display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={loadData}><RefreshCw size={15} /> Refresh</button>
+            <button className="btn-ghost" style={{ fontSize: '0.875rem', padding: '0.5rem 1rem', display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={handleSignOut}><LogOut size={15} /> Sign Out</button>
             {!confirmClear ? (
               <button onClick={() => setConfirmClear(true)} style={{ background: 'rgba(255,77,109,0.1)', border: '1px solid rgba(255,77,109,0.4)', color: '#ff4d6d', fontFamily: 'Inter', fontWeight: 600, padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '0.875rem', display: 'inline-flex', alignItems: 'center', gap: 6 }}><Trash2 size={15} /> Clear All</button>
             ) : (
