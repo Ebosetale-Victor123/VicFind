@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { getLostItemById, getFoundItemById, markItemReunited } from '../services/firestoreService'
 import { sendFinderEmail, sendOwnerReunionEmail } from '../services/emailService'
+import { useToast } from '../components/ToastContext'
 import { useTheme } from '../components/ThemeContext'
 import LoadingSpinner from '../components/LoadingSpinner'
 import { PartyPopper, Mail, Phone, MapPin, Map, Lightbulb, Wallet, CheckCircle2, XCircle, Search, HelpCircle, Palette } from 'lucide-react'
@@ -9,6 +10,7 @@ import { PartyPopper, Mail, Phone, MapPin, Map, Lightbulb, Wallet, CheckCircle2,
 export default function Verify() {
   const { lostItemId, foundItemId } = useParams()
   const { dark } = useTheme()
+  const { addToast } = useToast()
   const [lostItem, setLostItem] = useState(null)
   const [foundItem, setFoundItem] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -69,6 +71,7 @@ export default function Verify() {
       setDecision('confirmed')
     } catch (err) {
       console.error(err)
+      addToast('Something went wrong confirming this — please check your connection and try again.', 'error')
     } finally {
       setProcessing(false)
     }

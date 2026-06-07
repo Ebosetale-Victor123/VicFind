@@ -218,6 +218,10 @@ export async function clearAllData() {
     ...foundSnap.docs.map(d => deleteDoc(doc(db, 'foundItems', d.id))),
     ...notifSnap.docs.map(d => deleteDoc(doc(db, 'notifications', d.id))),
   ])
+  delete memCache.lostItems
+  delete memCache.foundItems
+  delete memCache.notifications
+  delete memCache.stats
   try {
     localStorage.removeItem('vicfind_cache_lostItems')
     localStorage.removeItem('vicfind_cache_foundItems')

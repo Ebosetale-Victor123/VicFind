@@ -6,6 +6,24 @@ const CALEB_CENTER = { lat: 6.6687, lng: 3.6366 }
 const CALEB_BOUNDS = { north: 6.6730, south: 6.6640, east: 3.6420, west: 3.6300 }
 const MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
 
+// Shared across all mounts/calls so concurrent loadMap() runs (e.g. StrictMode
+// double-invoke, fast remounts) await the same in-flight script load instead
+// of injecting duplicate <script> tags and racing each other to define window.google
+let mapsLoadPromise = null
+function loadGoogleMapsScript() {
+  if (window.google?.maps) return Promise.resolve()
+  if (!mapsLoadPromise) {
+    mapsLoadPromise = new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${MAPS_KEY}&libraries=visualization`
+      script.onload = resolve
+      script.onerror = () => { mapsLoadPromise = null; reject(new Error('Failed to load Google Maps script')) }
+      document.head.appendChild(script)
+    })
+  }
+  return mapsLoadPromise
+}
+
 const KNOWN_LOCATIONS = {
   'library': { lat: 6.6689, lng: 3.6358 }, 'e-library': { lat: 6.6689, lng: 3.6358 },
   'cafeteria': { lat: 6.6685, lng: 3.6355 }, 'cafe': { lat: 6.6685, lng: 3.6355 }, 'canteen': { lat: 6.6685, lng: 3.6355 },
@@ -63,13 +81,7 @@ export default function Heatmap() {
   async function loadMap() {
     setLoading(true)
     try {
-      await new Promise((resolve, reject) => {
-        if (window.google) { resolve(); return }
-        const script = document.createElement('script')
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${MAPS_KEY}&libraries=visualization`
-        script.onload = resolve; script.onerror = reject
-        document.head.appendChild(script)
-      })
+      await loadGoogleMapsScript()
 
       const map = new window.google.maps.Map(mapRef.current, {
         center: CALEB_CENTER, zoom: 17, mapTypeId: 'hybrid', tilt: 0,
