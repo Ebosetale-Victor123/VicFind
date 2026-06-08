@@ -103,8 +103,8 @@ export default function Verify() {
       : `https://maps.google.com/?q=${encodeURIComponent(foundItem.location + ', Caleb University, Imota, Lagos')}`
 
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-        <div className="card animate-fade-up" style={{ padding: '2.5rem', maxWidth: 520, width: '100%' }}>
+      <div style={{ minHeight: '100vh', padding: '6rem 1.5rem 4rem', display: 'flex', justifyContent: 'center' }}>
+        <div className="card animate-fade-up" style={{ padding: '2.5rem', maxWidth: 600, width: '100%' }}>
           <div style={{ textAlign: 'center', marginBottom: 24 }}>
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}><PartyPopper size={48} color="#00d4aa" /></div>
             <h2 style={{ fontFamily: 'Space Mono', fontWeight: 700, fontSize: '1.5rem', color: '#00d4aa', marginBottom: 6 }}>Reunited!</h2>
@@ -198,7 +198,7 @@ export default function Verify() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', paddingTop: 96, paddingBottom: 64, padding: '6rem 1.5rem 4rem' }}>
+    <div style={{ minHeight: '100vh', padding: '6rem 1.5rem 4rem' }}>
       <div style={{ maxWidth: 640, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}><Search size={44} color="#6c63ff" /></div>

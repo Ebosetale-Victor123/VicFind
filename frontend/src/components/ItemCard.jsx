@@ -1,4 +1,3 @@
-import { useTheme } from './ThemeContext'
 import { Palette, MapPin, Calendar, Wallet } from 'lucide-react'
 
 const statusColor = {
@@ -8,7 +7,6 @@ const statusColor = {
 }
 
 export default function ItemCard({ item }) {
-  const { dark } = useTheme()
   const s = statusColor[item.status] || statusColor.active
 
   return (

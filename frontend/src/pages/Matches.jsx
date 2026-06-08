@@ -20,7 +20,7 @@ export default function Matches() {
   }, [])
 
   return (
-    <div style={{ minHeight: '100vh', paddingTop: 96, paddingBottom: 64, padding: '7rem 1.5rem 4rem' }}>
+    <div style={{ minHeight: '100vh', padding: '7rem 1.5rem 4rem' }}>
       <div style={{ maxWidth: 800, margin: '0 auto' }}>
         <div style={{ marginBottom: 40 }}>
           <h1 style={{ fontFamily: 'Space Mono', fontWeight: 700, fontSize: 'clamp(1.8rem, 4vw, 2.5rem)', color: 'var(--text)', marginBottom: 8, letterSpacing: '-0.02em' }}>AI Matches</h1>

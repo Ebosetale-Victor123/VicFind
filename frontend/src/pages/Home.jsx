@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { getStats } from '../services/firestoreService'
 import { useTheme } from '../components/ThemeContext'
-import { Circle, Bot, PartyPopper, Camera, Lock, Map, Mail, ShieldCheck, MapPin } from 'lucide-react'
+import { Circle, Bot, PartyPopper, Camera, Lock, Map, Mail, ShieldCheck } from 'lucide-react'
 
 export default function Home() {
   const { dark } = useTheme()

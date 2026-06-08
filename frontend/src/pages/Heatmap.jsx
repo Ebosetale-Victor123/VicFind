@@ -96,17 +96,17 @@ export default function Heatmap() {
       await new Promise(resolve => setTimeout(resolve, 100))
 
       const [lost, found] = await Promise.all([getLostItems(), getFoundItems()])
-      setLostItems(lost)
-      setFoundItems(found)
 
       const locationCounts = {}
       const markers = []
+      const lostWithCoords = []
+      const foundWithCoords = []
 
       for (const item of lost) {
         let coords = resolveLocation(item)
         if (!coords && item.location) coords = await geocode(item.location)
-        if (!coords) continue
-        item._coords = coords
+        if (!coords) { lostWithCoords.push(item); continue }
+        lostWithCoords.push({ ...item, _coords: coords })
 
         const key = `${Math.round(coords.lat * 1000)},${Math.round(coords.lng * 1000)}`
         if (!locationCounts[key]) locationCounts[key] = { count: 0, coords, label: item.location || 'Unknown', items: [] }
@@ -135,8 +135,8 @@ export default function Heatmap() {
       for (const item of found) {
         let coords = resolveLocation(item)
         if (!coords && item.location) coords = await geocode(item.location)
-        if (!coords) continue
-        item._coords = coords
+        if (!coords) { foundWithCoords.push(item); continue }
+        foundWithCoords.push({ ...item, _coords: coords })
 
         const marker = new window.google.maps.Marker({
           position: coords, map,
@@ -164,6 +164,9 @@ export default function Heatmap() {
           map, center: spot.coords, radius: 40,
         })
       }
+
+      setLostItems(lostWithCoords)
+      setFoundItems(foundWithCoords)
 
       const breakdown = Object.values(locationCounts).sort((a, b) => b.count - a.count)
       setLocationBreakdown(breakdown)

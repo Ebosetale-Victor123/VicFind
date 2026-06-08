@@ -14,6 +14,8 @@ const pageLoaders = {
   matches: () => import('./pages/Matches'),
   items: () => import('./pages/AllLostItems'),
   heatmap: () => import('./pages/Heatmap'),
+  admin: () => import('./pages/Admin'),
+  verify: () => import('./pages/Verify'),
 }
 
 // Lazy load every page — only downloads when visited
@@ -23,14 +25,14 @@ const ReportFound = lazy(pageLoaders.reportFound)
 const Matches = lazy(pageLoaders.matches)
 const AllLostItems = lazy(pageLoaders.items)
 const Heatmap = lazy(pageLoaders.heatmap)
-const Admin = lazy(() => import('./pages/Admin'))
-const Verify = lazy(() => import('./pages/Verify'))
+const Admin = lazy(pageLoaders.admin)
+const Verify = lazy(pageLoaders.verify)
 const NotFound = lazy(() => import('./pages/NotFound'))
 
-// Once the browser is idle after the first page paints, quietly download the
-// other commonly-visited pages so navigating to them feels instant.
-// Skipped on slow connections / data-saver mode so it never competes with
-// the bandwidth someone on a kbps connection needs for the page they're on.
+// Once the browser is idle after the first page paints, quietly download every
+// other page (including Admin and Verify) so navigating to any of them feels
+// instant. Skipped on slow connections / data-saver mode so it never competes
+// with the bandwidth someone on a kbps connection needs for the page they're on.
 function usePagePrefetch() {
   useEffect(() => {
     const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection

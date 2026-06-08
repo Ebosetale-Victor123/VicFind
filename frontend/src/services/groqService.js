@@ -82,7 +82,7 @@ Rules:
         if (response.status === 429 || response.status >= 500) {
           lastError = new Error(`Groq returned ${response.status}`)
           console.warn(`Groq attempt ${attempt} failed with ${response.status}, retrying...`)
-          await wait(attempt * 1500)  // 1.5s, 3s, 4.5s
+          if (attempt < MAX_RETRIES) await wait(attempt * 1500)  // 1.5s, 3s
           continue
         }
         // Other errors (400 etc.) — don't retry, no point

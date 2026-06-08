@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { getLostItems, addFoundItem, addNotification } from '../services/firestoreService'
-import { analyzeFoundItem } from '../services/geminiService'
+import { analyzeFoundItem } from '../services/groqService'
 import { sendMatchEmail } from '../services/emailService'
 import { useToast } from '../components/ToastContext'
 import { useTheme } from '../components/ThemeContext'
@@ -413,7 +413,7 @@ export default function ReportFound() {
                     <p style={{ fontFamily: 'Inter', color: 'var(--muted)' }}>No matches found. Item logged — owners will be notified if a match appears.</p>
                   </div>
                 ) : (
-                  matches.sort((a, b) => b.confidence - a.confidence).map((match, i) => (
+                  [...matches].sort((a, b) => b.confidence - a.confidence).map((match, i) => (
                     <MatchCard key={i} match={match} onNotify={() => handleNotifyOwner(match)} notified={!!notifiedMatches[match.lostItemId]} notifying={!!notifying[match.lostItemId]} />
                   ))
                 )}

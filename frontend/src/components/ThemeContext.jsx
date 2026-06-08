@@ -4,8 +4,12 @@ const ThemeContext = createContext()
 
 export function ThemeProvider({ children }) {
   const [dark, setDark] = useState(() => {
-    const saved = localStorage.getItem('vicfind-theme')
-    return saved ? saved === 'dark' : true
+    try {
+      const saved = localStorage.getItem('vicfind-theme')
+      return saved ? saved === 'dark' : true
+    } catch {
+      return true
+    }
   })
 
   useEffect(() => {
@@ -15,7 +19,7 @@ export function ThemeProvider({ children }) {
     } else {
       root.classList.add('light')
     }
-    localStorage.setItem('vicfind-theme', dark ? 'dark' : 'light')
+    try { localStorage.setItem('vicfind-theme', dark ? 'dark' : 'light') } catch {}
   }, [dark])
 
   return (

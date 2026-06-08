@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { addLostItem, getFoundItems, addNotification } from '../services/firestoreService'
-import { analyzeFoundItem } from '../services/geminiService'
+import { analyzeFoundItem } from '../services/groqService'
 import { sendMatchEmail } from '../services/emailService'
 import { useToast } from '../components/ToastContext'
 import { useTheme } from '../components/ThemeContext'
@@ -324,7 +324,7 @@ export default function ReportLost() {
           <Field label="Description" required error={errors.description} hint="Be very specific: stickers, scratches, unique marks, contents">
             <div style={{ position: 'relative' }}>
               <textarea className="input-base" style={{ resize: 'none' }} rows={5} value={form.description} onChange={set('description')} placeholder="e.g. Black Casio fx-991ES calculator with a Lagos sticker on the back and a crack on the bottom right corner..." />
-              <span style={{ position: 'absolute', bottom: 8, right: 12, fontSize: '0.75rem', fontFamily: 'Space Mono', color: form.description.length < 30 ? '#ff4d6d' : 'var(--muted)' }}>{form.description.length}/30</span>
+              <span style={{ position: 'absolute', bottom: 8, right: 12, fontSize: '0.75rem', fontFamily: 'Space Mono', color: form.description.trim().length < 30 ? '#ff4d6d' : 'var(--muted)' }}>{form.description.trim().length}/30</span>
             </div>
           </Field>
 

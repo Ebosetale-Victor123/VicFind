@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth'
 import { auth } from '../firebase/config'
 import { getLostItems, getFoundItems, getNotifications, markItemClaimed, markItemActive, deleteLostItem, deleteFoundItem, deleteNotification, clearAllData } from '../services/firestoreService'
+import { useToast } from '../components/ToastContext'
 import LoadingSpinner from '../components/LoadingSpinner'
 import { Lock, RefreshCw, Trash2, Circle, Bot, PartyPopper, CheckCircle2, RotateCcw, User, Mail, MapPin, Calendar, Phone, LogOut } from 'lucide-react'
 
@@ -18,6 +19,7 @@ function StatCard({ value, label, color, Icon, fill }) {
 }
 
 export default function Admin() {
+  const { addToast } = useToast()
   const [authed, setAuthed] = useState(false)
   const [authChecking, setAuthChecking] = useState(true)
   const [email, setEmail] = useState('')
@@ -203,10 +205,10 @@ export default function Admin() {
                       <div className="item-actions">
                         {item.status !== 'reunited' && (
                           item.status === 'active'
-                            ? <button onClick={async () => { await markItemClaimed(item.id); setLostItems(p => p.map(i => i.id === item.id ? { ...i, status: 'claimed' } : i)) }} style={{ background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.4)', color: '#f59e0b', fontFamily: 'Inter', fontWeight: 600, padding: '0.4rem 0.875rem', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: 5 }}><CheckCircle2 size={13} /> Claimed</button>
-                            : <button onClick={async () => { await markItemActive(item.id); setLostItems(p => p.map(i => i.id === item.id ? { ...i, status: 'active' } : i)) }} style={{ background: 'rgba(0,212,170,0.12)', border: '1px solid rgba(0,212,170,0.4)', color: '#00d4aa', fontFamily: 'Inter', fontWeight: 600, padding: '0.4rem 0.875rem', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: 5 }}><RotateCcw size={13} /> Reactivate</button>
+                            ? <button onClick={async () => { try { await markItemClaimed(item.id); setLostItems(p => p.map(i => i.id === item.id ? { ...i, status: 'claimed' } : i)) } catch (err) { console.error(err); addToast('Could not update item — please try again.', 'error') } }} style={{ background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.4)', color: '#f59e0b', fontFamily: 'Inter', fontWeight: 600, padding: '0.4rem 0.875rem', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: 5 }}><CheckCircle2 size={13} /> Claimed</button>
+                            : <button onClick={async () => { try { await markItemActive(item.id); setLostItems(p => p.map(i => i.id === item.id ? { ...i, status: 'active' } : i)) } catch (err) { console.error(err); addToast('Could not update item — please try again.', 'error') } }} style={{ background: 'rgba(0,212,170,0.12)', border: '1px solid rgba(0,212,170,0.4)', color: '#00d4aa', fontFamily: 'Inter', fontWeight: 600, padding: '0.4rem 0.875rem', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: 5 }}><RotateCcw size={13} /> Reactivate</button>
                         )}
-                        <button onClick={async () => { await deleteLostItem(item.id); setLostItems(p => p.filter(i => i.id !== item.id)) }} style={{ background: 'rgba(255,77,109,0.1)', border: '1px solid rgba(255,77,109,0.3)', color: '#ff4d6d', fontFamily: 'Inter', fontWeight: 600, padding: '0.4rem 0.875rem', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center' }}><Trash2 size={14} /></button>
+                        <button onClick={async () => { try { await deleteLostItem(item.id); setLostItems(p => p.filter(i => i.id !== item.id)) } catch (err) { console.error(err); addToast('Could not delete item — please try again.', 'error') } }} style={{ background: 'rgba(255,77,109,0.1)', border: '1px solid rgba(255,77,109,0.3)', color: '#ff4d6d', fontFamily: 'Inter', fontWeight: 600, padding: '0.4rem 0.875rem', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center' }}><Trash2 size={14} /></button>
                       </div>
                     </div>
                   </div>
@@ -231,7 +233,7 @@ export default function Admin() {
                           {item.finderReunionId && <p style={{ fontFamily: 'Space Mono', fontSize: '0.72rem', color: 'var(--muted)', margin: 0 }}>ID: <span style={{ color: '#00d4aa' }}>{item.finderReunionId}</span></p>}
                         </div>
                       </div>
-                      <button onClick={async () => { await deleteFoundItem(item.id); setFoundItems(p => p.filter(i => i.id !== item.id)) }} style={{ background: 'rgba(255,77,109,0.1)', border: '1px solid rgba(255,77,109,0.3)', color: '#ff4d6d', fontFamily: 'Inter', fontWeight: 600, padding: '0.4rem 0.875rem', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '0.8rem', flexShrink: 0, display: 'inline-flex', alignItems: 'center' }}><Trash2 size={14} /></button>
+                      <button onClick={async () => { try { await deleteFoundItem(item.id); setFoundItems(p => p.filter(i => i.id !== item.id)) } catch (err) { console.error(err); addToast('Could not delete item — please try again.', 'error') } }} style={{ background: 'rgba(255,77,109,0.1)', border: '1px solid rgba(255,77,109,0.3)', color: '#ff4d6d', fontFamily: 'Inter', fontWeight: 600, padding: '0.4rem 0.875rem', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '0.8rem', flexShrink: 0, display: 'inline-flex', alignItems: 'center' }}><Trash2 size={14} /></button>
                     </div>
                   </div>
                 ))}
@@ -253,7 +255,7 @@ export default function Admin() {
                         <p style={{ fontFamily: 'Inter', fontSize: '0.8rem', color: 'var(--muted)', margin: '0 0 2px' }}>Owner: <strong style={{ color: 'var(--text)' }}>{notif.ownerName}</strong> · {notif.ownerEmail}</p>
                         <p style={{ fontFamily: 'Inter', fontSize: '0.75rem', color: 'var(--muted)', margin: 0 }}>{new Date(notif.createdAt).toLocaleString()}</p>
                       </div>
-                      <button onClick={async () => { await deleteNotification(notif.id); setNotifications(p => p.filter(i => i.id !== notif.id)) }} style={{ background: 'rgba(255,77,109,0.1)', border: '1px solid rgba(255,77,109,0.3)', color: '#ff4d6d', fontFamily: 'Inter', fontWeight: 600, padding: '0.4rem 0.875rem', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '0.8rem', flexShrink: 0, display: 'inline-flex', alignItems: 'center' }}><Trash2 size={14} /></button>
+                      <button onClick={async () => { try { await deleteNotification(notif.id); setNotifications(p => p.filter(i => i.id !== notif.id)) } catch (err) { console.error(err); addToast('Could not delete notification — please try again.', 'error') } }} style={{ background: 'rgba(255,77,109,0.1)', border: '1px solid rgba(255,77,109,0.3)', color: '#ff4d6d', fontFamily: 'Inter', fontWeight: 600, padding: '0.4rem 0.875rem', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '0.8rem', flexShrink: 0, display: 'inline-flex', alignItems: 'center' }}><Trash2 size={14} /></button>
                     </div>
                   </div>
                 ))}
