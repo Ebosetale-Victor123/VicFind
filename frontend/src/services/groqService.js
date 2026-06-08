@@ -24,12 +24,14 @@ export async function analyzeFoundItem(imageBase64, mimeType, lostItems) {
   const prompt = `You are an AI assistant for VicFind, a campus lost and found system at Caleb University, Ota. Analyze the provided image of a found item and compare it against the lost item descriptions below.
 
 CRITICAL RULES:
-- You MUST first correctly identify what the item in the photo actually is (phone, power bank, mouse, calculator, bag, keys, earbuds, charger, etc.)
-- Do NOT match based on color or shape alone — the item TYPE must match
-- A power bank is NOT a mouse. A phone is NOT a calculator. Earbuds are NOT keys. Be precise.
-- Only give confidence above 60 if the item type AND description closely match
-- Only give confidence above 80 if you are very certain it's the same specific item
-- If the found item is clearly a different type of item than what's listed, give 0 confidence or exclude it entirely
+- First, look at the ENTIRE image carefully. If the photo shows furniture, floors, walls, ceilings, hands without a held item, empty background, or any non-portable environmental object — return [] immediately. Do not try to match it.
+- The item must be a discrete, portable, hand-held or hand-carried object clearly visible in the foreground. If you cannot clearly see such an object, return [].
+- You MUST correctly identify what the item in the photo actually is (phone, power bank, mouse, calculator, bag, keys, earbuds, charger, etc.). Do NOT guess or hallucinate — if you are not certain, return [].
+- Do NOT match based on color or shape alone — the item TYPE must match exactly.
+- A power bank is NOT a mouse. A phone is NOT a calculator. A chair/furniture is NOT a phone. Earbuds are NOT keys. Be precise.
+- Only give confidence above 60 if the item type AND description closely match.
+- Only give confidence above 80 if you are very certain it's the same specific item.
+- If the found item is clearly a different type of item than what's listed, return [].
 
 Lost items database:
 ${lostItemsText}

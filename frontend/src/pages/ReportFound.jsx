@@ -217,7 +217,8 @@ export default function ReportFound() {
       const frontBase64Full = await compressForStorage(frontImage)
       const backBase64Full = backImage ? await compressForStorage(backImage) : null
 
-      const lostItems = await getLostItems()
+      const allLostItems = await getLostItems()
+      const lostItems = allLostItems.filter(i => i.status === 'active')
       let aiMatches = []
 
       if (lostItems.length === 0) {
