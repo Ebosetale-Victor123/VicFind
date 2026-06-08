@@ -15,6 +15,25 @@ const init = { name: '', email: '', phone: '', itemName: '', category: '', color
 const DRAFT_KEY = 'vicfind_lost_draft'
 const NOTIFIED_KEY = 'vicfind_lost_draft_notified'
 
+function compressForStorage(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      const maxW = 600
+      const scale = Math.min(1, maxW / img.width)
+      const canvas = document.createElement('canvas')
+      canvas.width = img.width * scale
+      canvas.height = img.height * scale
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height)
+      URL.revokeObjectURL(url)
+      resolve(canvas.toDataURL('image/jpeg', 0.6))
+    }
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Image load failed')) }
+    img.src = url
+  })
+}
+
 function Field({ label, required, error, hint, children }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -74,11 +93,15 @@ export default function ReportLost() {
 
   const set = key => e => setForm(f => ({ ...f, [key]: e.target.value }))
 
-  function handlePhoto(file) {
+  async function handlePhoto(file) {
     if (!file || !file.type.startsWith('image/')) return
-    const reader = new FileReader()
-    reader.onload = e => { setPhotoPreview(e.target.result); setForm(f => ({ ...f, photo: e.target.result })) }
-    reader.readAsDataURL(file)
+    try {
+      const compressed = await compressForStorage(file)
+      setPhotoPreview(compressed)
+      setForm(f => ({ ...f, photo: compressed }))
+    } catch {
+      addToast('Could not load that image — please try another.', 'error')
+    }
   }
 
   function clearDraft() {
