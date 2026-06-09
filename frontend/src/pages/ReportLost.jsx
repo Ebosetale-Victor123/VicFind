@@ -20,14 +20,14 @@ function compressForStorage(file) {
     const img = new Image()
     const url = URL.createObjectURL(file)
     img.onload = () => {
-      const maxW = 600
+      const maxW = 400
       const scale = Math.min(1, maxW / img.width)
       const canvas = document.createElement('canvas')
       canvas.width = img.width * scale
       canvas.height = img.height * scale
       canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height)
       URL.revokeObjectURL(url)
-      resolve(canvas.toDataURL('image/jpeg', 0.6))
+      resolve(canvas.toDataURL('image/jpeg', 0.5))
     }
     img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Image load failed')) }
     img.src = url
